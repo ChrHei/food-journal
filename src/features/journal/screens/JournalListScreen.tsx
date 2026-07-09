@@ -103,34 +103,36 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "800",
-    color: "#261a13",
+    color: "#1e1713",
   },
   subtitle: {
-    color: "#6b5b50",
+    color: "#8d7767",
   },
   emptyState: {
-    backgroundColor: "#f7efe5",
+    backgroundColor: "#fffaf5",
     borderRadius: 20,
     padding: 20,
     gap: 8,
+    borderWidth: 1,
+    borderColor: "#ead8c9",
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#3f3024",
+    color: "#3d2d23",
   },
   emptyText: {
-    color: "#6b5b50",
+    color: "#786555",
   },
   card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
+    backgroundColor: "#fffdf9",
+    borderRadius: 18,
     padding: 18,
     gap: 10,
     borderWidth: 1,
-    borderColor: "#eadbca",
+    borderColor: "#ead8c9",
   },
   cardHeader: {
     flexDirection: "row",
@@ -140,18 +142,18 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#3f3024",
+    color: "#2a2019",
   },
   symptom: {
-    color: "#9b2c2c",
+    color: "#b33d35",
     fontWeight: "700",
   },
   timestamp: {
-    color: "#7a3d13",
+    color: "#b55a2f",
     fontWeight: "600",
   },
   text: {
-    color: "#312720",
+    color: "#6d5849",
     lineHeight: 22,
   },
 });

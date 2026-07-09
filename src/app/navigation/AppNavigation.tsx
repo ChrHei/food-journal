@@ -17,12 +17,13 @@ export function AppNavigation() {
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
-          headerStyle: { backgroundColor: "#f6f1e8" },
-          headerTintColor: "#1f1a17",
-          contentStyle: { backgroundColor: "#fcfaf7" },
+          headerStyle: { backgroundColor: "#4b2817" },
+          headerTintColor: "#f7f1ea",
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: "#4b2817" },
         }}
       >
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Matjournal" }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         <Stack.Screen
           name="JournalList"
           component={JournalListScreen}
