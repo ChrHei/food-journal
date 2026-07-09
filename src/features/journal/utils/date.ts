@@ -28,6 +28,21 @@ export function fromLocalInputValue(value: string) {
   return date.toISOString();
 }
 
+export function localDateToUtcBoundary(dateValue: string, boundary: "start" | "end") {
+  if (!dateValue.trim()) {
+    return "";
+  }
+
+  const time = boundary === "start" ? "T00:00:00.000" : "T23:59:59.999";
+  const date = new Date(`${dateValue}${time}`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toISOString();
+}
+
 export function formatDateTime(isoString: string) {
   return new Intl.DateTimeFormat("sv-SE", {
     dateStyle: "medium",

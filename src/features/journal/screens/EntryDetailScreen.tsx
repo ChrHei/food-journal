@@ -14,15 +14,43 @@ type Props = NativeStackScreenProps<RootStackParamList, "EntryDetail">;
 export function EntryDetailScreen({ navigation, route }: Props) {
   const { repository, refresh } = useJournalContext();
   const [entry, setEntry] = useState<JournalEntry | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    repository.getEntry(route.params.entryId).then(setEntry).catch(console.error);
+    let active = true;
+
+    repository
+      .getEntry(route.params.entryId)
+      .then((result) => {
+        if (active) {
+          setEntry(result);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [repository, route.params.entryId]);
 
   async function handleDelete() {
     await repository.deleteEntry(route.params.entryId);
     refresh();
     navigation.navigate("JournalList");
+  }
+
+  if (loading) {
+    return (
+      <Screen>
+        <Text>Laddar post...</Text>
+      </Screen>
+    );
   }
 
   if (!entry) {

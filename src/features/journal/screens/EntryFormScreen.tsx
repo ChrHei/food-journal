@@ -24,7 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "EntryForm">;
 
 export function EntryFormScreen({ navigation, route }: Props) {
   const entryId = route.params?.entryId;
-  const { repository, refresh } = useJournalContext();
+  const { ready, repository, refresh } = useJournalContext();
   const [form, setForm] = useState({
     timestampLocal: toLocalInputValue(new Date().toISOString()),
     category: "Frukost" as CategoryType,
@@ -141,7 +141,12 @@ export function EntryFormScreen({ navigation, route }: Props) {
         />
       </View>
 
-      <PrimaryButton label={saving ? "Sparar..." : "Spara"} disabled={saving} onPress={handleSave} />
+      <PrimaryButton
+        label={saving ? "Sparar..." : "Spara"}
+        disabled={saving || !ready}
+        onPress={handleSave}
+      />
+      {!ready ? <Text style={styles.status}>Databasen startar. Försök spara om en stund.</Text> : null}
     </Screen>
   );
 }
@@ -189,5 +194,9 @@ const styles = StyleSheet.create({
   },
   switchHint: {
     color: "#6b5b50",
+  },
+  status: {
+    color: "#7a3d13",
+    textAlign: "center",
   },
 });
