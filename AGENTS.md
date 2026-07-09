@@ -1,49 +1,54 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is currently in bootstrap state: it contains Git metadata only and no application files yet. As the project is added, keep the top level predictable:
+This repository contains an Android-first Expo/React Native app for food, drink, medication, and symptom tracking.
 
-- `src/` for app code
-- `tests/` for automated tests
-- `assets/` for static images, icons, or sample data
-- `docs/` for design notes and decisions
-
-Prefer small, focused modules. Keep feature code grouped by domain rather than by file type when the codebase grows.
+- `App.tsx` bootstraps the app
+- `src/app/navigation/` contains React Navigation setup
+- `src/domain/` contains core types and validation rules
+- `src/data/` contains SQLite access, repositories, and legacy normalization helpers
+- `src/features/journal/` contains screens, hooks, and context for the journal flow
+- `src/components/` contains reusable UI pieces
+- `docs/` contains architecture and decision documents
+- `tests/` contains Jest tests
+- `reference/Matdagbok.xlsx` is reference input data only, not runtime data
+- `.agents/review/` stores saved review notes
 
 ## Build, Test, and Development Commands
-There are no build scripts configured yet. When tooling is introduced, expose it through repository-level commands so contributors have one obvious entry point.
+Use the repository scripts in `package.json`:
 
-- `npm install` or equivalent: install dependencies
-- `npm run dev`: start local development
-- `npm test`: run the test suite
-- `npm run lint`: check formatting and static analysis
+- `npm install`: install dependencies
+- `npm run start`: start Expo locally
+- `npm run android`: run the app on Android
+- `npm test`: run Jest tests
+- `npm run lint`: run TypeScript type-checking with `tsc --noEmit`
 
-If a different stack is chosen, update this file immediately so commands stay accurate.
+Run `npm test` and `npm run lint` before committing app logic changes.
 
 ## Coding Style & Naming Conventions
-Use 2 or 4 spaces consistently; do not mix indentation styles within a file. Prefer UTF-8 text files, descriptive names, and small functions with one clear responsibility.
+Use TypeScript throughout. Prefer small modules and keep domain rules out of UI components.
 
-- Files and folders: kebab-case unless the language ecosystem strongly prefers another pattern
-- Classes and components: PascalCase
-- Variables and functions: camelCase
+- Components and screens: PascalCase, e.g. `EntryFormScreen.tsx`
+- Functions, hooks, and variables: camelCase
 - Constants: UPPER_SNAKE_CASE
+- Keep imports using the `@/` alias for `src/`
 
-Adopt a formatter and linter early and run them before opening a pull request.
+Follow existing patterns: domain types in `src/domain`, persistence in `src/data`, feature behavior in `src/features`.
 
 ## Testing Guidelines
-Place tests under `tests/` or next to source files using the project’s standard pattern. Name tests after the unit under test, for example `meal-entry.test.js` or `MealEntryTests.cs`.
+Tests use Jest with the `jest-expo` preset. Place tests in `tests/` with `*.test.ts` names, for example `repository.test.ts`.
 
-Add tests for new behavior and regressions. A practical baseline is coverage for critical flows rather than a raw percentage target until the architecture is established.
+Prioritize tests for:
+
+- validation rules
+- repository behavior
+- filter/query helpers
+- legacy Excel normalization
 
 ## Commit & Pull Request Guidelines
-This repository has no commit history yet, so start with short, imperative commit messages such as `Add meal entry model` or `Set up test runner`.
+Use short, descriptive English commit messages in plain language, such as `Initial app scaffold` or `Fix journal date filtering`. Do not use Conventional Commits prefixes.
 
-Pull requests should include:
-
-- a clear summary of the change
-- setup or migration notes if relevant
-- linked issue or task reference
-- screenshots for UI changes
+Pull requests should include a concise summary, note any Android-specific verification, and include screenshots for UI changes.
 
 ## Agent-Specific Notes
-Keep automation-friendly scripts at the repo root or under a clearly named tooling folder. When adding new conventions, update this guide in the same change set.
+Keep Markdown documentation current when architecture or conventions change. If you save a review, store it under `.agents/review/`.
