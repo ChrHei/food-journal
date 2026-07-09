@@ -1,0 +1,16 @@
+export const categoryOptions = [
+  "Frukost",
+  "Lunch",
+  "Middag",
+  "Kvällsmat",
+  "Dryck",
+  "Medicin",
+  "Anteckning",
+  "Symptom",
+] as const;
+
+export type CategoryType = (typeof categoryOptions)[number];
+
+export function isCategoryType(value: string): value is CategoryType {
+  return categoryOptions.includes(value as CategoryType);
+}
