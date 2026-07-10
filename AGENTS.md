@@ -86,6 +86,16 @@ Use short, descriptive English commit messages in plain language, such as `Initi
 
 Pull requests should include a concise summary, note any Android-specific verification, and include screenshots for UI changes.
 
+Standard git workflow for this repository:
+
+- use `main` as the default base branch unless the task explicitly says otherwise
+- prefer `git pull --ff-only` before creating a new feature branch from `main`
+- name agent-created branches with the `codex/` prefix followed by a short task description
+- if the user says "check in changes" without narrowing scope, assume `git add -A` is acceptable for the files changed for that task
+- use English commit messages
+- when the user asks to create a PR, assume the target is `main` unless another base branch is specified
+- after a branch is merged, it is acceptable to delete the local feature branch if the user asks to clean up
+
 If a PR also changes SDK/dependencies:
 
 - state the target Expo SDK explicitly
