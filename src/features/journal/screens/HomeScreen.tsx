@@ -7,7 +7,6 @@ import { Screen } from "@/components/Screen";
 import type { RootStackParamList } from "@/app/navigation/types";
 import { categoryOptions } from "@/domain/categories";
 import { useJournalEntries } from "@/features/journal/hooks/useJournalEntries";
-import { formatDateTime } from "@/features/journal/utils/date";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -43,7 +42,7 @@ export function HomeScreen({ navigation }: Props) {
           <>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryCount}>{todayEntries.length}</Text>
-              <Text style={styles.summaryText}>registrerade inlagg</Text>
+              <Text style={styles.summaryText}>registrerade inlägg</Text>
             </View>
             <View style={styles.summaryBadges}>
               <Badge label={`${todayEntries.length - symptomCount} utan symptom`} />
@@ -59,7 +58,9 @@ export function HomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.categoryGrid}>
-        {categoryCounts.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator color="#c85f2c" />
+        ) : categoryCounts.length > 0 ? (
           categoryCounts.map(({ category, count }) => (
             <Pressable
               key={category}
@@ -77,14 +78,14 @@ export function HomeScreen({ navigation }: Props) {
           ))
         ) : (
           <View style={styles.emptyBlock}>
-            <Text style={styles.emptyTitle}>Inga inlagg idag</Text>
-            <Text style={styles.emptyText}>Skapa dagens forsta post for att fylla oversikten.</Text>
+            <Text style={styles.emptyTitle}>Inga inlägg idag</Text>
+            <Text style={styles.emptyText}>Skapa dagens första post för att fylla översikten.</Text>
           </View>
         )}
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionLabel}>Senaste inlagg</Text>
+        <Text style={styles.sectionLabel}>Senaste inlägg</Text>
         <Pressable onPress={() => navigation.navigate("JournalList")}>
           <Text style={styles.sectionAction}>Visa alla</Text>
         </Pressable>
@@ -116,7 +117,7 @@ export function HomeScreen({ navigation }: Props) {
           ))
         : null}
 
-      <PrimaryButton label="+ Nytt inlagg" onPress={() => navigation.navigate("EntryForm")} />
+      <PrimaryButton label="+ Nytt inlägg" onPress={() => navigation.navigate("EntryForm")} />
     </Screen>
   );
 }
