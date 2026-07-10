@@ -1,3 +1,5 @@
+import type { NavigatorScreenParams } from "@react-navigation/native";
+
 import type { JournalFilter } from "@/domain/journal";
 
 export type RootStackParamList = {
@@ -6,4 +8,8 @@ export type RootStackParamList = {
   EntryForm: { entryId?: string } | undefined;
   EntryDetail: { entryId: string };
   Filter: { filter?: JournalFilter } | undefined;
+};
+
+export type RootDrawerParamList = {
+  JournalRoot: NavigatorScreenParams<RootStackParamList> | undefined;
 };

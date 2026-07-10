@@ -1,10 +1,12 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { MenuButton } from "@/components/MenuButton";
 import type { JournalEntry } from "@/domain/journal";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
-import type { RootStackParamList } from "@/app/navigation/types";
+import type { RootDrawerParamList, RootStackParamList } from "@/app/navigation/types";
 import { categoryOptions } from "@/domain/categories";
 import { useJournalEntries } from "@/features/journal/hooks/useJournalEntries";
 
@@ -29,9 +31,11 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.date}>{formatCurrentDate(new Date())}</Text>
           <Text style={styles.title}>Min dagbok</Text>
         </View>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>MJ</Text>
-        </View>
+        <MenuButton
+          onPress={() =>
+            (navigation.getParent() as DrawerNavigationProp<RootDrawerParamList> | undefined)?.openDrawer()
+          }
+        />
       </View>
 
       <View style={styles.summaryCard}>
@@ -141,18 +145,6 @@ const styles = StyleSheet.create({
     lineHeight: 46,
     fontWeight: "800",
     color: "#1e1713",
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#efe3d5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: "#7f5639",
-    fontWeight: "800",
   },
   summaryCard: {
     overflow: "hidden",

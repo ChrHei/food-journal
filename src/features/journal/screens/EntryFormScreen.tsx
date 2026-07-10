@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -14,29 +14,41 @@ import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
-import { categoryOptions, type CategoryType } from "@/domain/categories";
+import { categoryOptions } from "@/domain/categories";
 import type { JournalEntryInput } from "@/domain/journal";
 import { validateEntryInput } from "@/domain/validation";
 import { useJournalContext } from "@/features/journal/context/JournalProvider";
-import { fromLocalInputValue, toLocalInputValue } from "@/features/journal/utils/date";
+import { fromLocalInputValue } from "@/features/journal/utils/date";
+import {
+  areEntryFormValuesEqual,
+  createDefaultEntryFormValues,
+  mapEntryToEntryFormValues,
+  type EntryFormValues,
+} from "@/features/journal/utils/entryForm";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EntryForm">;
 
 export function EntryFormScreen({ navigation, route }: Props) {
   const entryId = route.params?.entryId;
   const { ready, repository, refresh } = useJournalContext();
-  const [form, setForm] = useState({
-    timestampLocal: toLocalInputValue(new Date().toISOString()),
-    category: "Frukost" as CategoryType,
-    text: "",
-    symptomFlag: false,
-  });
+  const initialDefaultFormRef = useRef<EntryFormValues>(createDefaultEntryFormValues());
+  const [form, setForm] = useState<EntryFormValues>(initialDefaultFormRef.current);
+  const [initialForm, setInitialForm] = useState<EntryFormValues>(initialDefaultFormRef.current);
   const [loadingEntry, setLoadingEntry] = useState(Boolean(entryId));
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const allowExitRef = useRef(false);
+  const hasUnsavedChanges = useMemo(
+    () => !areEntryFormValuesEqual(form, initialForm),
+    [form, initialForm],
+  );
 
   useEffect(() => {
     if (!entryId) {
+      const nextForm = createDefaultEntryFormValues();
+      allowExitRef.current = false;
+      setForm(nextForm);
+      setInitialForm(nextForm);
       setLoadingEntry(false);
       setLoadError(null);
       return;
@@ -64,12 +76,10 @@ export function EntryFormScreen({ navigation, route }: Props) {
           return;
         }
 
-        setForm({
-          timestampLocal: toLocalInputValue(entry.timestamp),
-          category: entry.category,
-          text: entry.text,
-          symptomFlag: entry.symptomFlag,
-        });
+        const nextForm = mapEntryToEntryFormValues(entry);
+        allowExitRef.current = false;
+        setForm(nextForm);
+        setInitialForm(nextForm);
         setLoadingEntry(false);
       })
       .catch((error) => {
@@ -84,6 +94,29 @@ export function EntryFormScreen({ navigation, route }: Props) {
       active = false;
     };
   }, [entryId, ready, repository]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
+      if (!hasUnsavedChanges || saving || allowExitRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+      Alert.alert("Osparade ändringar", "Du har osparade ändringar. Vill du lämna utan att spara?", [
+        { text: "Stanna kvar", style: "cancel" },
+        {
+          text: "Lämna",
+          style: "destructive",
+          onPress: () => {
+            allowExitRef.current = true;
+            navigation.dispatch(event.data.action);
+          },
+        },
+      ]);
+    });
+
+    return unsubscribe;
+  }, [hasUnsavedChanges, navigation, saving]);
 
   async function handleSave() {
     const input: JournalEntryInput = {
@@ -108,6 +141,8 @@ export function EntryFormScreen({ navigation, route }: Props) {
         await repository.createEntry(input);
       }
 
+      allowExitRef.current = true;
+      setInitialForm(form);
       refresh();
       navigation.navigate("JournalList");
     } catch (error) {
@@ -134,7 +169,15 @@ export function EntryFormScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen>
+    <Screen
+      footer={
+        <PrimaryButton
+          label={saving ? "Sparar..." : "Spara"}
+          disabled={saving || !ready}
+          onPress={handleSave}
+        />
+      }
+    >
       <Field label="Tidpunkt" hint="Använd formatet YYYY-MM-DDTHH:mm, till exempel 2026-07-09T08:30">
         <TextInput
           autoCapitalize="none"
@@ -148,7 +191,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
           onPress={() =>
             setForm((current) => ({
               ...current,
-              timestampLocal: toLocalInputValue(new Date().toISOString()),
+              timestampLocal: createDefaultEntryFormValues().timestampLocal,
             }))
           }
         />
@@ -190,11 +233,6 @@ export function EntryFormScreen({ navigation, route }: Props) {
         />
       </View>
 
-      <PrimaryButton
-        label={saving ? "Sparar..." : "Spara"}
-        disabled={saving || !ready}
-        onPress={handleSave}
-      />
       {!ready ? <Text style={styles.status}>Databasen startar. Försök spara om en stund.</Text> : null}
     </Screen>
   );
