@@ -3,6 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "types": [
+      "jest"
+    ],
     "paths": {
       "@/*": [
         "src/*"
@@ -11,7 +14,6 @@
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts"
+    "**/*.tsx"
   ]
 }

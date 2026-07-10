@@ -9,6 +9,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { categoryOptions } from "@/domain/categories";
 import type { CategoryType } from "@/domain/categories";
+import { localDateToUtcBoundary } from "@/features/journal/utils/date";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Filter">;
 
@@ -71,8 +72,8 @@ export function FilterScreen({ navigation, route }: Props) {
         onPress={() =>
           navigation.replace("JournalList", {
             filter: {
-              from: filter.from ? `${filter.from}T00:00:00.000Z` : undefined,
-              to: filter.to ? `${filter.to}T23:59:59.999Z` : undefined,
+              from: filter.from ? localDateToUtcBoundary(filter.from, "start") : undefined,
+              to: filter.to ? localDateToUtcBoundary(filter.to, "end") : undefined,
               category: filter.category,
               symptomsOnly: filter.symptomsOnly,
             },

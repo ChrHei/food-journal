@@ -1,5 +1,6 @@
 import { buildListEntriesQuery } from "@/data/journalRepository";
 import { normalizeLegacyCategory } from "@/data/excelNormalization";
+import { localDateToUtcBoundary } from "@/features/journal/utils/date";
 
 describe("repository helpers", () => {
   it("builds query with all supported filters", () => {
@@ -25,5 +26,11 @@ describe("repository helpers", () => {
     expect(normalizeLegacyCategory(" Mellanmål ")).toBe("Anteckning");
     expect(normalizeLegacyCategory("Symptom")).toBe("Symptom");
     expect(normalizeLegacyCategory("Okänd")).toBe("IGNORE");
+  });
+
+  it("converts local filter dates to UTC boundaries", () => {
+    expect(localDateToUtcBoundary("2026-07-09", "start")).toMatch(/^2026-07-0[89]T/);
+    expect(localDateToUtcBoundary("2026-07-09", "end")).toMatch(/^2026-07-0[89]T/);
+    expect(localDateToUtcBoundary("", "start")).toBe("");
   });
 });

@@ -24,33 +24,66 @@ type Props = NativeStackScreenProps<RootStackParamList, "EntryForm">;
 
 export function EntryFormScreen({ navigation, route }: Props) {
   const entryId = route.params?.entryId;
-  const { repository, refresh } = useJournalContext();
+  const { ready, repository, refresh } = useJournalContext();
   const [form, setForm] = useState({
     timestampLocal: toLocalInputValue(new Date().toISOString()),
     category: "Frukost" as CategoryType,
     text: "",
     symptomFlag: false,
   });
+  const [loadingEntry, setLoadingEntry] = useState(Boolean(entryId));
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!entryId) {
+      setLoadingEntry(false);
+      setLoadError(null);
       return;
     }
 
-    repository.getEntry(entryId).then((entry) => {
-      if (!entry) {
-        return;
-      }
+    if (!ready) {
+      setLoadingEntry(true);
+      return;
+    }
 
-      setForm({
-        timestampLocal: toLocalInputValue(entry.timestamp),
-        category: entry.category,
-        text: entry.text,
-        symptomFlag: entry.symptomFlag,
+    let active = true;
+    setLoadingEntry(true);
+    setLoadError(null);
+
+    repository
+      .getEntry(entryId)
+      .then((entry) => {
+        if (!active) {
+          return;
+        }
+
+        if (!entry) {
+          setLoadError("Posten hittades inte.");
+          setLoadingEntry(false);
+          return;
+        }
+
+        setForm({
+          timestampLocal: toLocalInputValue(entry.timestamp),
+          category: entry.category,
+          text: entry.text,
+          symptomFlag: entry.symptomFlag,
+        });
+        setLoadingEntry(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (active) {
+          setLoadError("Kunde inte läsa posten.");
+          setLoadingEntry(false);
+        }
       });
-    });
-  }, [entryId, repository]);
+
+    return () => {
+      active = false;
+    };
+  }, [entryId, ready, repository]);
 
   async function handleSave() {
     const input: JournalEntryInput = {
@@ -82,6 +115,22 @@ export function EntryFormScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (entryId && (loadingEntry || !ready)) {
+    return (
+      <Screen>
+        <Text>Laddar post...</Text>
+      </Screen>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Screen>
+        <Text style={styles.status}>{loadError}</Text>
+      </Screen>
+    );
   }
 
   return (
@@ -141,7 +190,12 @@ export function EntryFormScreen({ navigation, route }: Props) {
         />
       </View>
 
-      <PrimaryButton label={saving ? "Sparar..." : "Spara"} disabled={saving} onPress={handleSave} />
+      <PrimaryButton
+        label={saving ? "Sparar..." : "Spara"}
+        disabled={saving || !ready}
+        onPress={handleSave}
+      />
+      {!ready ? <Text style={styles.status}>Databasen startar. Försök spara om en stund.</Text> : null}
     </Screen>
   );
 }
@@ -189,5 +243,9 @@ const styles = StyleSheet.create({
   },
   switchHint: {
     color: "#6b5b50",
+  },
+  status: {
+    color: "#7a3d13",
+    textAlign: "center",
   },
 });
