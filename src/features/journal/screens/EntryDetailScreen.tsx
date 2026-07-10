@@ -12,12 +12,20 @@ import { formatDateTime } from "@/features/journal/utils/date";
 type Props = NativeStackScreenProps<RootStackParamList, "EntryDetail">;
 
 export function EntryDetailScreen({ navigation, route }: Props) {
-  const { repository, refresh } = useJournalContext();
+  const { ready, repository, refresh } = useJournalContext();
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!ready) {
+      setLoading(true);
+      return;
+    }
+
     let active = true;
+    setLoading(true);
+    setLoadError(null);
 
     repository
       .getEntry(route.params.entryId)
@@ -30,6 +38,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
       .catch((error) => {
         console.error(error);
         if (active) {
+          setLoadError("Kunde inte läsa posten.");
           setLoading(false);
         }
       });
@@ -37,7 +46,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
     return () => {
       active = false;
     };
-  }, [repository, route.params.entryId]);
+  }, [ready, repository, route.params.entryId]);
 
   async function handleDelete() {
     await repository.deleteEntry(route.params.entryId);
@@ -49,6 +58,14 @@ export function EntryDetailScreen({ navigation, route }: Props) {
     return (
       <Screen>
         <Text>Laddar post...</Text>
+      </Screen>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Screen>
+        <Text>{loadError}</Text>
       </Screen>
     );
   }
