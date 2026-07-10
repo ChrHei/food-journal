@@ -16,19 +16,24 @@ export function Chip({ label, selected, onPress }: ChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    borderRadius: 999,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#cbb49b",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: "#fffaf3",
+    borderColor: "#ead8c9",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "#fffaf5",
+    shadowColor: "#28150a",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
   },
   selected: {
-    backgroundColor: "#7a3d13",
-    borderColor: "#7a3d13",
+    backgroundColor: "#c85f2c",
+    borderColor: "#c85f2c",
   },
   label: {
-    color: "#5c4433",
+    color: "#6d4e3b",
     fontWeight: "600",
   },
   selectedLabel: {

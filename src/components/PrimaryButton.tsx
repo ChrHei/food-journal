@@ -24,26 +24,35 @@ export function PrimaryButton({
         pressed && !disabled && styles.pressed,
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, variant === "secondary" && styles.secondaryLabel]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 15,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 54,
+    shadowColor: "#2a160c",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   primary: {
-    backgroundColor: "#7a3d13",
+    backgroundColor: "#241a15",
   },
   secondary: {
-    backgroundColor: "#d9c3ab",
+    backgroundColor: "#fffaf5",
+    borderWidth: 1,
+    borderColor: "#ead8c9",
   },
   danger: {
-    backgroundColor: "#9b2c2c",
+    backgroundColor: "#a74638",
   },
   disabled: {
     opacity: 0.5,
@@ -55,5 +64,8 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "700",
+  },
+  secondaryLabel: {
+    color: "#6c4d3a",
   },
 });

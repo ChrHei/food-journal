@@ -18,15 +18,17 @@ export function Field({ label, hint, children }: FieldProps) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
+    gap: 10,
   },
   label: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: "700",
-    color: "#3f3024",
+    color: "#8f715b",
+    letterSpacing: 1.1,
+    textTransform: "uppercase",
   },
   hint: {
     fontSize: 12,
-    color: "#6b5b50",
+    color: "#8d7767",
   },
 });
