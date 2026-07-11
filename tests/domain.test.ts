@@ -11,12 +11,12 @@ describe("domain rules", () => {
       "Dryck",
       "Medicin",
       "Anteckning",
-      "Symptom",
     ]);
   });
 
   it("recognizes valid categories", () => {
     expect(isCategoryType("Medicin")).toBe(true);
+    expect(isCategoryType("Symptom")).toBe(false);
     expect(isCategoryType("Mellanmål")).toBe(false);
   });
 

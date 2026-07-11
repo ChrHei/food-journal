@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type ScreenProps = PropsWithChildren<{
   footer?: ReactNode;
@@ -7,7 +8,7 @@ type ScreenProps = PropsWithChildren<{
 
 export function Screen({ children, footer }: ScreenProps) {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <View style={styles.shell}>
         <View style={styles.surface}>
           <ScrollView

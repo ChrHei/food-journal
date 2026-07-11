@@ -1,17 +1,19 @@
 import {
   CommonActions,
   NavigationContainer,
-  type NavigatorScreenParams,
+  createNavigationContainerRef,
 } from "@react-navigation/native";
-import {
-  DrawerContentScrollView,
-  DrawerItem,
-  createDrawerNavigator,
-  type DrawerContentComponentProps,
-  type DrawerNavigationProp,
-} from "@react-navigation/drawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MenuButton } from "@/components/MenuButton";
 import { EntryDetailScreen } from "@/features/journal/screens/EntryDetailScreen";
@@ -20,12 +22,12 @@ import { FilterScreen } from "@/features/journal/screens/FilterScreen";
 import { HomeScreen } from "@/features/journal/screens/HomeScreen";
 import { JournalListScreen } from "@/features/journal/screens/JournalListScreen";
 
-import type { RootDrawerParamList, RootStackParamList } from "./types";
+import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Drawer = createDrawerNavigator<RootDrawerParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
-const drawerItems: Array<{
+const menuItems: Array<{
   label: string;
   screen: keyof RootStackParamList;
 }> = [
@@ -34,45 +36,54 @@ const drawerItems: Array<{
   { label: "Historik", screen: "JournalList" },
 ];
 
+type AppMenuContextValue = {
+  activeRoute: keyof RootStackParamList | undefined;
+  handleNavigationReady: () => void;
+  handleNavigationStateChange: () => void;
+  openMenu: () => void;
+};
+
+const AppMenuContext = createContext<AppMenuContextValue | null>(null);
+
 export function AppNavigation() {
   return (
-    <NavigationContainer>
-      <Drawer.Navigator
-        screenOptions={{
-          headerShown: false,
-          drawerPosition: "left",
-          drawerType: "front",
-          overlayColor: "rgba(30, 23, 19, 0.22)",
-          drawerStyle: styles.drawer,
-        }}
-        drawerContent={(props) => <AppDrawerContent {...props} />}
-      >
-        <Drawer.Screen name="JournalRoot" component={JournalStackNavigator} />
-      </Drawer.Navigator>
+    <AppMenuProvider>
+      <NavigationShell />
+    </AppMenuProvider>
+  );
+}
+
+function NavigationShell() {
+  const { handleNavigationReady, handleNavigationStateChange } = useAppMenu();
+
+  return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={handleNavigationReady}
+      onStateChange={handleNavigationStateChange}
+    >
+      <JournalStackNavigator />
     </NavigationContainer>
   );
 }
 
 function JournalStackNavigator() {
+  const { openMenu } = useAppMenu();
+
   return (
     <Stack.Navigator
       initialRouteName="Home"
-      screenOptions={({ navigation }) => ({
+      screenOptions={{
         headerStyle: { backgroundColor: "#4b2817" },
         headerTintColor: "#f7f1ea",
         headerShadowVisible: false,
         contentStyle: { backgroundColor: "#4b2817" },
-        headerRight: () => (
-          <MenuButton
-            onPress={() =>
-              (navigation.getParent() as DrawerNavigationProp<RootDrawerParamList> | undefined)?.openDrawer()
-            }
-            variant="light"
-          />
-        ),
-      })}
+        headerRight: () => <MenuButton onPress={openMenu} variant="light" />,
+      }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Home" options={{ headerShown: false }}>
+        {(props) => <HomeScreen {...props} onOpenMenu={openMenu} />}
+      </Stack.Screen>
       <Stack.Screen
         name="JournalList"
         component={JournalListScreen}
@@ -93,93 +104,175 @@ function JournalStackNavigator() {
   );
 }
 
-function AppDrawerContent(props: DrawerContentComponentProps) {
-  const activeRouteName = getActiveRouteName(props.state);
+function AppMenuProvider({ children }: PropsWithChildren) {
+  const [visible, setVisible] = useState(false);
+  const [activeRoute, setActiveRoute] = useState<keyof RootStackParamList | undefined>(undefined);
 
-  function resetToScreen(screen: keyof RootStackParamList) {
-    props.navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: "JournalRoot",
-            params: { screen } as NavigatorScreenParams<RootStackParamList>,
-          },
-        ],
-      }),
-    );
-  }
+  const syncActiveRoute = useCallback(() => {
+    if (!navigationRef.isReady()) {
+      return;
+    }
+
+    const routeName = navigationRef.getCurrentRoute()?.name;
+
+    if (routeName) {
+      setActiveRoute(routeName as keyof RootStackParamList);
+    }
+  }, []);
+
+  const handleNavigationReady = useCallback(() => {
+    syncActiveRoute();
+  }, [syncActiveRoute]);
+
+  const handleNavigationStateChange = useCallback(() => {
+    syncActiveRoute();
+  }, [syncActiveRoute]);
+
+  const openMenu = useCallback(() => {
+    setVisible(true);
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    setVisible(false);
+  }, []);
+
+  const navigateTo = useCallback(
+    (screen: keyof RootStackParamList) => {
+      closeMenu();
+
+      if (!navigationRef.isReady()) {
+        return;
+      }
+
+      navigationRef.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: screen }],
+        }),
+      );
+    },
+    [closeMenu],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      activeRoute,
+      handleNavigationReady,
+      handleNavigationStateChange,
+      openMenu,
+    }),
+    [activeRoute, handleNavigationReady, handleNavigationStateChange, openMenu],
+  );
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContent}>
-      <View style={styles.drawerHeader}>
-        <Text style={styles.drawerEyebrow}>Matjournal</Text>
-        <Text style={styles.drawerTitle}>Meny</Text>
-      </View>
-
-      {drawerItems.map((item) => (
-        <DrawerItem
-          key={item.screen}
-          label={item.label}
-          focused={activeRouteName === item.screen}
-          labelStyle={styles.drawerLabel}
-          style={styles.drawerItem}
-          activeBackgroundColor="#f2dfce"
-          inactiveBackgroundColor="transparent"
-          activeTintColor="#7a3d13"
-          inactiveTintColor="#5b4334"
-          onPress={() => resetToScreen(item.screen)}
-        />
-      ))}
-    </DrawerContentScrollView>
+    <AppMenuContext.Provider value={contextValue}>
+      {children}
+      <MenuOverlay
+        activeRoute={activeRoute}
+        visible={visible}
+        onClose={closeMenu}
+        onNavigate={navigateTo}
+      />
+    </AppMenuContext.Provider>
   );
 }
 
-function getActiveRouteName(state: DrawerContentComponentProps["state"]) {
-  const drawerRoute = state.routes[state.index];
-  const nestedState = drawerRoute.state;
+function MenuOverlay({
+  activeRoute,
+  visible,
+  onClose,
+  onNavigate,
+}: {
+  activeRoute: keyof RootStackParamList | undefined;
+  visible: boolean;
+  onClose: () => void;
+  onNavigate: (screen: keyof RootStackParamList) => void;
+}) {
+  return (
+    <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
+      <SafeAreaView edges={["top", "bottom"]} style={styles.overlayRoot}>
+        <Pressable style={styles.scrim} onPress={onClose} />
+        <View style={styles.panel}>
+          <Text style={styles.panelEyebrow}>Matjournal</Text>
+          <Text style={styles.panelTitle}>Meny</Text>
 
-  if (!nestedState || !("routes" in nestedState) || nestedState.routes.length === 0) {
-    return "Home";
+          {menuItems.map((item) => (
+            <Pressable
+              key={item.screen}
+              onPress={() => onNavigate(item.screen)}
+              style={[styles.menuItem, activeRoute === item.screen && styles.menuItemActive]}
+            >
+              <Text
+                style={[
+                  styles.menuItemLabel,
+                  activeRoute === item.screen && styles.menuItemLabelActive,
+                ]}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+function useAppMenu() {
+  const context = useContext(AppMenuContext);
+
+  if (!context) {
+    throw new Error("useAppMenu must be used within AppMenuProvider.");
   }
 
-  const nestedRoute = nestedState.routes[nestedState.index ?? nestedState.routes.length - 1];
-
-  return nestedRoute.name as keyof RootStackParamList;
+  return context;
 }
 
 const styles = StyleSheet.create({
-  drawer: {
-    backgroundColor: "#fff7f0",
+  overlayRoot: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "rgba(30, 23, 19, 0.22)",
+  },
+  scrim: {
+    flex: 1,
+  },
+  panel: {
     width: 280,
+    backgroundColor: "#fff7f0",
+    paddingHorizontal: 20,
+    paddingTop: 48,
+    paddingBottom: 24,
+    gap: 12,
   },
-  drawerContent: {
-    paddingTop: 12,
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  drawerHeader: {
-    paddingHorizontal: 12,
-    paddingVertical: 18,
-    gap: 4,
-  },
-  drawerEyebrow: {
+  panelEyebrow: {
     color: "#8b6c58",
     textTransform: "uppercase",
     letterSpacing: 1.1,
     fontSize: 12,
     fontWeight: "700",
   },
-  drawerTitle: {
+  panelTitle: {
     color: "#2d2018",
     fontSize: 28,
     fontWeight: "800",
+    marginBottom: 8,
   },
-  drawerItem: {
+  menuItem: {
     borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "transparent",
   },
-  drawerLabel: {
+  menuItemActive: {
+    backgroundColor: "#f2dfce",
+  },
+  menuItemLabel: {
+    color: "#5b4334",
     fontSize: 16,
     fontWeight: "700",
+  },
+  menuItemLabelActive: {
+    color: "#7a3d13",
   },
 });

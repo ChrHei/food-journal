@@ -1,18 +1,22 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { MenuButton } from "@/components/MenuButton";
-import type { JournalEntry } from "@/domain/journal";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
-import type { RootDrawerParamList, RootStackParamList } from "@/app/navigation/types";
+import { SymptomBadge } from "@/components/SymptomBadge";
+import type { RootStackParamList } from "@/app/navigation/types";
 import { categoryOptions } from "@/domain/categories";
 import { useJournalEntries } from "@/features/journal/hooks/useJournalEntries";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
-export function HomeScreen({ navigation }: Props) {
+type HomeScreenOwnProps = {
+  onOpenMenu: () => void;
+};
+
+export function HomeScreen({ navigation, onOpenMenu }: Props & HomeScreenOwnProps) {
   const { entries, loading } = useJournalEntries();
   const todayEntries = entries.filter((entry) => isSameLocalDay(entry.timestamp, new Date()));
   const categoryCounts = categoryOptions
@@ -31,11 +35,7 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.date}>{formatCurrentDate(new Date())}</Text>
           <Text style={styles.title}>Min dagbok</Text>
         </View>
-        <MenuButton
-          onPress={() =>
-            (navigation.getParent() as DrawerNavigationProp<RootDrawerParamList> | undefined)?.openDrawer()
-          }
-        />
+        <MenuButton onPress={onOpenMenu} />
       </View>
 
       <View style={styles.summaryCard}>
@@ -71,10 +71,10 @@ export function HomeScreen({ navigation }: Props) {
               onPress={() => navigation.navigate("JournalList", { filter: { category } })}
               style={styles.categoryCard}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: categoryAccent(category) }]}>
-                <Text style={styles.categoryIconText}>{categoryAbbreviation(category)}</Text>
-              </View>
-              <Text style={styles.categoryName}>{category}</Text>
+              <CategoryIcon category={category} size={30} />
+              <Text numberOfLines={1} style={styles.categoryName}>
+                {category}
+              </Text>
               <View style={styles.categoryCountBadge}>
                 <Text style={styles.categoryCountText}>{count}</Text>
               </View>
@@ -104,18 +104,18 @@ export function HomeScreen({ navigation }: Props) {
               style={styles.entryCard}
               onPress={() => navigation.navigate("EntryDetail", { entryId: entry.id })}
             >
-              <View style={[styles.entryIcon, { backgroundColor: categoryAccent(entry.category) }]}>
-                <Text style={styles.entryIconText}>{categoryAbbreviation(entry.category)}</Text>
-              </View>
+              <CategoryIcon category={entry.category} size={48} />
               <View style={styles.entryBody}>
                 <View style={styles.entryTopRow}>
                   <Text style={styles.entryTitle}>{entry.category}</Text>
-                  <Text style={styles.entryTime}>{formatTime(entry.timestamp)}</Text>
+                  <View style={styles.entryMetaColumn}>
+                    <Text style={styles.entryTime}>{formatTime(entry.timestamp)}</Text>
+                    {entry.symptomFlag ? <SymptomBadge /> : null}
+                  </View>
                 </View>
                 <Text numberOfLines={2} style={styles.entryText}>
                   {entry.text}
                 </Text>
-                {entry.symptomFlag ? <Text style={styles.entryMeta}>Symptom</Text> : null}
               </View>
             </Pressable>
           ))
@@ -213,39 +213,25 @@ const styles = StyleSheet.create({
   categoryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: 8,
   },
   categoryCard: {
-    minWidth: "46%",
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
     backgroundColor: "#fffaf5",
     borderRadius: 18,
     borderWidth: 1,
     borderColor: "#ead8c9",
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 10,
     shadowColor: "#28150a",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
     shadowRadius: 14,
     elevation: 2,
   },
-  categoryIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  categoryIconText: {
-    color: "#ffffff",
-    fontSize: 11,
-    fontWeight: "800",
-  },
   categoryName: {
-    flex: 1,
     color: "#6b4b38",
     fontWeight: "600",
   },
@@ -294,19 +280,6 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 2,
   },
-  entryIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 2,
-  },
-  entryIconText: {
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 12,
-  },
   entryBody: {
     flex: 1,
     gap: 6,
@@ -326,14 +299,13 @@ const styles = StyleSheet.create({
     color: "#8e7869",
     fontSize: 13,
   },
+  entryMetaColumn: {
+    alignItems: "flex-end",
+    gap: 6,
+  },
   entryText: {
     color: "#6d5849",
     lineHeight: 21,
-  },
-  entryMeta: {
-    color: "#b33d35",
-    fontSize: 12,
-    fontWeight: "700",
   },
 });
 
@@ -387,46 +359,4 @@ function isSameLocalDay(isoString: string, date: Date) {
     value.getMonth() === date.getMonth() &&
     value.getDate() === date.getDate()
   );
-}
-
-function categoryAbbreviation(category: JournalEntry["category"]) {
-  switch (category) {
-    case "Frukost":
-      return "FR";
-    case "Lunch":
-      return "LU";
-    case "Middag":
-      return "MI";
-    case "Kvällsmat":
-      return "KV";
-    case "Dryck":
-      return "DR";
-    case "Medicin":
-      return "ME";
-    case "Anteckning":
-      return "AN";
-    case "Symptom":
-      return "SY";
-  }
-}
-
-function categoryAccent(category: JournalEntry["category"]) {
-  switch (category) {
-    case "Frukost":
-      return "#ec8e45";
-    case "Lunch":
-      return "#d9a63a";
-    case "Middag":
-      return "#b684d6";
-    case "Kvällsmat":
-      return "#db7749";
-    case "Dryck":
-      return "#7b5ea7";
-    case "Medicin":
-      return "#df6d68";
-    case "Anteckning":
-      return "#6d89d8";
-    case "Symptom":
-      return "#ba4338";
-  }
 }

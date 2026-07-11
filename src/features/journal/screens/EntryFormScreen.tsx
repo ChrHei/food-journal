@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -201,6 +202,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
         <View style={styles.chipGroup}>
           {categoryOptions.map((category) => (
             <Chip
+              icon={<CategoryIcon category={category} size={30} />}
               key={category}
               label={category}
               selected={form.category === category}

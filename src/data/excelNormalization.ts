@@ -8,7 +8,7 @@ const legacyCategoryMap: Record<string, CategoryType | "IGNORE"> = {
   Dryck: "Dryck",
   Medicin: "Medicin",
   Anteckning: "Anteckning",
-  Symptom: "Symptom",
+  Symptom: "Anteckning",
   Mellanmål: "Anteckning",
 };
 
