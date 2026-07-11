@@ -176,6 +176,20 @@ After committing on a feature branch:
 
 Never push directly to `main` unless the user explicitly requests it. Never use destructive commands such as `git reset --hard` or `git checkout --` to discard work unless the user explicitly authorizes that action.
 
+### Closing A Feature Branch
+
+When the user asks to "finish the branch" or "close the branch", use this exact workflow:
+
+1. Inspect `git status` before performing any push, fetch, switch, or deletion.
+2. If tracked or untracked changes are present, stop and ask whether to continue. Do not discard, stash, commit, or move those changes without the user's answer.
+3. Record the current feature-branch name.
+4. Push the feature branch if its commits are not already on its upstream. If no upstream exists, create one with `git push -u origin <branch>`.
+5. Fetch the latest remote main branch with `git fetch origin main`.
+6. Switch to the local main branch with `git switch main`.
+7. Delete the recorded local feature branch with `git branch -d <branch>`.
+
+Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch unless the user asks. If `main` cannot be checked out because it is already attached to another worktree, stop and report that blocker instead of changing or deleting a different worktree.
+
 ## Issues And Pull Requests
 
 - Use `main` as the default pull-request target unless another base is specified.
