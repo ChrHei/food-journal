@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
+import { SymptomBadge } from "@/components/SymptomBadge";
 import type { JournalEntry } from "@/domain/journal";
 import { useJournalContext } from "@/features/journal/context/JournalProvider";
 import { formatDateTime } from "@/features/journal/utils/date";
@@ -81,10 +83,15 @@ export function EntryDetailScreen({ navigation, route }: Props) {
   return (
     <Screen>
       <View style={styles.card}>
-        <Text style={styles.category}>{entry.category}</Text>
-        <Text style={styles.timestamp}>{formatDateTime(entry.timestamp)}</Text>
+        <View style={styles.categoryRow}>
+          <CategoryIcon category={entry.category} size={68} />
+          <View style={styles.categoryCopy}>
+            <Text style={styles.category}>{entry.category}</Text>
+            <Text style={styles.timestamp}>{formatDateTime(entry.timestamp)}</Text>
+            {entry.symptomFlag ? <SymptomBadge align="left" /> : null}
+          </View>
+        </View>
         <Text style={styles.body}>{entry.text}</Text>
-        <Text style={styles.meta}>Symptommarkerad: {entry.symptomFlag ? "Ja" : "Nej"}</Text>
       </View>
 
       <PrimaryButton
@@ -114,10 +121,20 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
+  categoryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  categoryCopy: {
+    flex: 1,
+    gap: 4,
+  },
   category: {
     fontSize: 24,
     fontWeight: "800",
     color: "#261a13",
+    flexShrink: 1,
   },
   timestamp: {
     color: "#7a3d13",
@@ -127,8 +144,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: "#312720",
-  },
-  meta: {
-    color: "#6b5b50",
   },
 });

@@ -152,7 +152,7 @@ function mapRow(row: JournalEntryRow): JournalEntry {
   return {
     id: row.id,
     timestamp: row.timestamp,
-    category: row.category as JournalEntry["category"],
+    category: row.category === "Symptom" ? "Anteckning" : (row.category as JournalEntry["category"]),
     text: row.text,
     symptomFlag: row.symptom_flag === 1,
     createdAt: row.created_at,

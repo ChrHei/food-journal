@@ -7,7 +7,7 @@ describe("repository helpers", () => {
     const result = buildListEntriesQuery({
       from: "2026-07-01T00:00:00.000Z",
       to: "2026-07-31T23:59:59.999Z",
-      category: "Symptom",
+      category: "Anteckning",
       symptomsOnly: true,
     });
 
@@ -18,13 +18,13 @@ describe("repository helpers", () => {
     expect(result.params).toEqual([
       "2026-07-01T00:00:00.000Z",
       "2026-07-31T23:59:59.999Z",
-      "Symptom",
+      "Anteckning",
     ]);
   });
 
   it("normalizes legacy excel categories", () => {
     expect(normalizeLegacyCategory(" Mellanmål ")).toBe("Anteckning");
-    expect(normalizeLegacyCategory("Symptom")).toBe("Symptom");
+    expect(normalizeLegacyCategory("Symptom")).toBe("Anteckning");
     expect(normalizeLegacyCategory("Okänd")).toBe("IGNORE");
   });
 

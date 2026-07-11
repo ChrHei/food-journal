@@ -3,6 +3,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -50,6 +51,7 @@ export function FilterScreen({ navigation, route }: Props) {
           />
           {categoryOptions.map((category) => (
             <Chip
+              icon={<CategoryIcon category={category} size={30} />}
               key={category}
               label={category}
               selected={filter.category === category}

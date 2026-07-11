@@ -3,8 +3,10 @@ import { useMemo } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
+import { SymptomBadge } from "@/components/SymptomBadge";
 import type { JournalEntry, JournalFilter } from "@/domain/journal";
 import { useJournalEntries } from "@/features/journal/hooks/useJournalEntries";
 import { formatDateTime } from "@/features/journal/utils/date";
@@ -56,10 +58,15 @@ function EntryCard({ entry, onPress }: { entry: JournalEntry; onPress: () => voi
   return (
     <Pressable onPress={onPress} style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.category}>{entry.category}</Text>
-        {entry.symptomFlag ? <Text style={styles.symptom}>Symptom</Text> : null}
+        <View style={styles.categoryRow}>
+          <CategoryIcon category={entry.category} size={34} />
+          <Text style={styles.category}>{entry.category}</Text>
+        </View>
+        <View style={styles.cardMeta}>
+          <Text style={styles.timestamp}>{formatDateTime(entry.timestamp)}</Text>
+          {entry.symptomFlag ? <SymptomBadge /> : null}
+        </View>
       </View>
-      <Text style={styles.timestamp}>{formatDateTime(entry.timestamp)}</Text>
       <Text style={styles.text}>{entry.text}</Text>
     </Pressable>
   );
@@ -138,15 +145,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
+  },
+  categoryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
   },
   category: {
     fontSize: 18,
     fontWeight: "700",
     color: "#2a2019",
+    flexShrink: 1,
   },
-  symptom: {
-    color: "#b33d35",
-    fontWeight: "700",
+  cardMeta: {
+    alignItems: "flex-end",
+    gap: 6,
   },
   timestamp: {
     color: "#b55a2f",

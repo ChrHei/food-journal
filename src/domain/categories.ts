@@ -6,7 +6,6 @@ export const categoryOptions = [
   "Dryck",
   "Medicin",
   "Anteckning",
-  "Symptom",
 ] as const;
 
 export type CategoryType = (typeof categoryOptions)[number];
