@@ -155,7 +155,9 @@ Before editing or committing:
 
 - Inspect `git status` and preserve unrelated user changes.
 - Use `main` as the default base unless the task specifies another branch.
-- Before creating a feature branch from `main`, prefer `git pull --ff-only`.
+- Local `main` may be checked out in multiple worktrees only to support branch cleanup. Use `git switch --ignore-other-worktrees main` to bypass Git's multiple-worktree warning.
+- Never edit, stage, commit, or push code, documentation, configuration, dependencies, or generated files directly on `main`. All repository changes must be made on a feature branch.
+- Before creating a feature branch, run `git fetch origin main` and create the branch directly from `origin/main`.
 - Name agent-created branches with the `codex/` prefix and a short task description.
 
 When committing:
@@ -185,10 +187,10 @@ When the user asks to "finish the branch" or "close the branch", use this exact 
 3. Record the current feature-branch name.
 4. Push the feature branch if its commits are not already on its upstream. If no upstream exists, create one with `git push -u origin <branch>`.
 5. Fetch the latest remote main branch with `git fetch origin main`.
-6. Switch to the local main branch with `git switch main`.
+6. Switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
 7. Delete the recorded local feature branch with `git branch -d <branch>`.
 
-Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch unless the user asks. If `main` cannot be checked out because it is already attached to another worktree, stop and report that blocker instead of changing or deleting a different worktree.
+Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch unless the user asks. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker.
 
 ## Issues And Pull Requests
 
