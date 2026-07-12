@@ -5,6 +5,9 @@ coverage/
 *.log
 .expo-export/
 
-# Android Studio local files
+# Android Studio / Android local files
 .idea/
-
+*.iml
+local.properties
+.gradle/
+build/
