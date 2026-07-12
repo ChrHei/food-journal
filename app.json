@@ -3,6 +3,7 @@
     "name": "Matjournal",
     "slug": "matjournal",
     "version": "0.1.0",
+    "icon": "./assets/app-icon-bowl.png",
     "orientation": "portrait",
     "platforms": [
       "android"
