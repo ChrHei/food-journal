@@ -166,11 +166,11 @@ Before editing or committing:
 - A subagent must never switch branches, commit, stage, or otherwise change Git state in the parent agent's checkout or another subagent's worktree.
 - Every subagent must choose a random feminine first name for itself before starting work, and use that name consistently in its task communication.
 - A subagent's final report must begin by introducing itself by its chosen name before reporting results, verification, or blockers.
-- A subagent that implements a code or configuration change must create a draft pull request immediately after its first intentional commit has been pushed. Do not wait for the implementation to be complete or for all verification to finish.
-- Use `main` as the draft pull request target unless the task specifies another base branch. Link the relevant GitHub issue when one exists.
-- Push later commits to the same branch so they update the existing draft pull request; never create a duplicate pull request for the branch.
+- A subagent that implements a code or configuration change must create a ready-for-review pull request immediately after its first intentional commit has been pushed. Do not wait for the implementation to be complete or for all verification to finish.
+- Use `main` as the pull request target unless the task specifies another base branch. Link the relevant GitHub issue when one exists.
+- Push later commits to the same branch so they update the existing pull request; never create a duplicate pull request for the branch.
 - Do not create a pull request for read-only investigation, planning, review-only work, or when the user explicitly says not to create one.
-- Report the draft pull request URL promptly, then report completed checks and outstanding manual verification as the work continues.
+- Report the ready-for-review pull request URL promptly, then report completed checks and outstanding manual verification as the work continues.
 
 When committing:
 
@@ -198,11 +198,15 @@ When the user asks to "finish the branch" or "close the branch", use this exact 
 2. If tracked or untracked changes are present, stop and ask whether to continue. Do not discard, stash, commit, or move those changes without the user's answer.
 3. Record the current feature-branch name.
 4. Push the feature branch if its commits are not already on its upstream. If no upstream exists, create one with `git push -u origin <branch>`.
-5. Fetch the latest remote main branch into local `main` with `git fetch origin main:main`.
-6. Switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
+5. In the main worktree, the main agent must update local `main`: run `git fetch origin main`, then `git merge --ff-only FETCH_HEAD`. Do not fetch directly into `main` from a feature worktree because `main` may be checked out elsewhere.
+6. In the feature worktree, switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
 7. Delete the recorded local feature branch with `git branch -d <branch>`.
+8. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker. Do not use `-D`.
+9. After the branch is deleted, run `git worktree remove <feature-worktree-path>` from the main worktree to deregister and remove the dedicated feature worktree. Verify the result with `git worktree list` and `git branch --list <branch>`.
 
-Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch unless the user asks. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker.
+If `git worktree remove` unregisters the worktree but cannot delete its files because of a Windows path-length error, first verify with `git worktree list` that the worktree is no longer registered. Only then remove the remaining verified worktree directory with Windows long-path support. Do not delete a worktree directory that is still registered.
+
+Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch or close its pull request unless the user explicitly asks.
 
 ## Issues And Pull Requests
 
