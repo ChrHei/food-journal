@@ -1,6 +1,7 @@
 import {
   areEntryFormValuesEqual,
   createDefaultEntryFormValues,
+  formatIngredientList,
   mapEntryToEntryFormValues,
 } from "@/features/journal/utils/entryForm";
 
@@ -69,5 +70,21 @@ describe("entry form helpers", () => {
 
     expect(areEntryFormValuesEqual(updated, baseline)).toBe(false);
     expect(areEntryFormValuesEqual(updated, updated)).toBe(true);
+  });
+
+  it("formats dictated conjunctions and comma words as list separators", () => {
+    expect(formatIngredientList("äpple och banan")).toBe("äpple, banan");
+    expect(formatIngredientList("äpple komma banan")).toBe("äpple, banan");
+  });
+
+  it("formats repeated separators, uppercase dictation words, and empty segments", () => {
+    expect(formatIngredientList("äpple, , OCH, komma banan,, päron")).toBe("äpple, banan, päron");
+  });
+
+  it("preserves an already correctly formatted list and is idempotent", () => {
+    const formatted = formatIngredientList("äpple, banan, päron");
+
+    expect(formatted).toBe("äpple, banan, päron");
+    expect(formatIngredientList(formatted)).toBe(formatted);
   });
 });
