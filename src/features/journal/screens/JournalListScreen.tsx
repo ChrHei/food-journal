@@ -32,7 +32,10 @@ export function JournalListScreen({ navigation, route }: Props) {
         />
       </View>
 
-      <PrimaryButton label="Ny post" onPress={() => navigation.navigate("EntryForm")} />
+      <PrimaryButton
+        label="Ny post"
+        onPress={() => navigation.push("EntryForm")}
+      />
 
       {loading ? <ActivityIndicator color="#7a3d13" /> : null}
 

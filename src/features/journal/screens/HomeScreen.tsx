@@ -121,7 +121,10 @@ export function HomeScreen({ navigation, onOpenMenu }: Props & HomeScreenOwnProp
           ))
         : null}
 
-      <PrimaryButton label="+ Nytt inlägg" onPress={() => navigation.navigate("EntryForm")} />
+      <PrimaryButton
+        label="+ Nytt inlägg"
+        onPress={() => navigation.push("EntryForm")}
+      />
     </Screen>
   );
 }
