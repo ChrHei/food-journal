@@ -31,6 +31,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "EntryForm">;
 
 export function EntryFormScreen({ navigation, route }: Props) {
   const entryId = route.params?.entryId;
+  const newEntrySessionId = route.params?.newEntrySessionId;
   const { ready, repository, refresh } = useJournalContext();
   const initialDefaultFormRef = useRef<EntryFormValues>(createDefaultEntryFormValues());
   const [form, setForm] = useState<EntryFormValues>(initialDefaultFormRef.current);
@@ -94,7 +95,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
     return () => {
       active = false;
     };
-  }, [entryId, ready, repository]);
+  }, [entryId, newEntrySessionId, ready, repository]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {

@@ -6,10 +6,12 @@ type EntryFormNavigationTarget = {
   merge: false;
 };
 
+let newEntrySessionId = 0;
+
 export function createNewEntryFormNavigationTarget(): EntryFormNavigationTarget {
   return {
     name: "EntryForm",
-    params: undefined,
+    params: { newEntrySessionId: ++newEntrySessionId },
     merge: false,
   };
 }
