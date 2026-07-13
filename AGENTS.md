@@ -160,8 +160,10 @@ Before editing or committing:
 - Before creating a feature branch, run `git fetch origin main` and create the branch directly from `origin/main`.
 - Name agent-created branches with the `codex/` prefix and a short task description.
 
-### Subagent Pull Requests
+### Subagent Workflow
 
+- Every subagent must work in a dedicated Git worktree that is separate from the parent agent's checkout and every other subagent's worktree. The parent agent must provision that worktree before delegating implementation work.
+- A subagent must never switch branches, commit, stage, or otherwise change Git state in the parent agent's checkout or another subagent's worktree.
 - Every subagent must choose a random feminine first name for itself before starting work, and use that name consistently in its task communication.
 - A subagent's final report must begin by introducing itself by its chosen name before reporting results, verification, or blockers.
 - A subagent that implements a code or configuration change must create a draft pull request immediately after its first intentional commit has been pushed. Do not wait for the implementation to be complete or for all verification to finish.
