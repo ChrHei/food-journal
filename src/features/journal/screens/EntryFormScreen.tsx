@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -19,7 +20,14 @@ import { categoryOptions } from "@/domain/categories";
 import type { JournalEntryInput } from "@/domain/journal";
 import { validateEntryInput } from "@/domain/validation";
 import { useJournalContext } from "@/features/journal/context/JournalProvider";
-import { fromLocalInputValue } from "@/features/journal/utils/date";
+import {
+  formatDateTime,
+  fromLocalDateTimeValue,
+  fromLocalInputValue,
+  mergeLocalDate,
+  mergeLocalTime,
+  toLocalInputValue,
+} from "@/features/journal/utils/date";
 import {
   areEntryFormValuesEqual,
   createDefaultEntryFormValues,
@@ -38,6 +46,8 @@ export function EntryFormScreen({ navigation, route }: Props) {
   const [loadingEntry, setLoadingEntry] = useState(Boolean(entryId));
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const allowExitRef = useRef(false);
   const hasUnsavedChanges = useMemo(
     () => !areEntryFormValuesEqual(form, initialForm),
@@ -153,6 +163,43 @@ export function EntryFormScreen({ navigation, route }: Props) {
     }
   }
 
+  function handleDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
+    setShowDatePicker(false);
+
+    if (event.type !== "set" || !selectedDate) {
+      return;
+    }
+
+    setForm((current) => {
+      const timestamp = fromLocalDateTimeValue(current.timestampLocal) ?? new Date();
+
+      return {
+        ...current,
+        timestampLocal: toLocalInputValue(mergeLocalDate(timestamp, selectedDate).toISOString()),
+      };
+    });
+    setShowTimePicker(true);
+  }
+
+  function handleTimeChange(event: DateTimePickerEvent, selectedTime?: Date) {
+    setShowTimePicker(false);
+
+    if (event.type !== "set" || !selectedTime) {
+      return;
+    }
+
+    setForm((current) => {
+      const timestamp = fromLocalDateTimeValue(current.timestampLocal) ?? new Date();
+
+      return {
+        ...current,
+        timestampLocal: toLocalInputValue(mergeLocalTime(timestamp, selectedTime).toISOString()),
+      };
+    });
+  }
+
+  const selectedTimestamp = fromLocalDateTimeValue(form.timestampLocal) ?? new Date();
+
   if (entryId && (loadingEntry || !ready)) {
     return (
       <Screen>
@@ -179,13 +226,9 @@ export function EntryFormScreen({ navigation, route }: Props) {
         />
       }
     >
-      <Field label="Tidpunkt" hint="Använd formatet YYYY-MM-DDTHH:mm, till exempel 2026-07-09T08:30">
-        <TextInput
-          autoCapitalize="none"
-          style={styles.input}
-          value={form.timestampLocal}
-          onChangeText={(timestampLocal) => setForm((current) => ({ ...current, timestampLocal }))}
-        />
+      <Field label="Tidpunkt">
+        <Text style={styles.timestamp}>{formatDateTime(selectedTimestamp.toISOString())}</Text>
+        <PrimaryButton label="Välj datum och tid" variant="secondary" onPress={() => setShowDatePicker(true)} />
         <PrimaryButton
           label="Sätt till nu"
           variant="secondary"
@@ -196,6 +239,23 @@ export function EntryFormScreen({ navigation, route }: Props) {
             }))
           }
         />
+        {showDatePicker ? (
+          <DateTimePicker
+            value={selectedTimestamp}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        ) : null}
+        {showTimePicker ? (
+          <DateTimePicker
+            value={selectedTimestamp}
+            mode="time"
+            display="default"
+            is24Hour
+            onChange={handleTimeChange}
+          />
+        ) : null}
       </Field>
 
       <Field label="Kategori">
@@ -242,6 +302,16 @@ export function EntryFormScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   input: {
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#ddc8b2",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#261a13",
+  },
+  timestamp: {
     backgroundColor: "#ffffff",
     borderRadius: 14,
     borderWidth: 1,

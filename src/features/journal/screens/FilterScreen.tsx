@@ -1,6 +1,7 @@
 import React from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { StyleSheet, Switch, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
@@ -10,7 +11,11 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { categoryOptions } from "@/domain/categories";
 import type { CategoryType } from "@/domain/categories";
-import { localDateToUtcBoundary } from "@/features/journal/utils/date";
+import {
+  fromLocalDateValue,
+  localDateToUtcBoundary,
+  toLocalDateValue,
+} from "@/features/journal/utils/date";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Filter">;
 
@@ -21,26 +26,61 @@ export function FilterScreen({ navigation, route }: Props) {
     category: route.params?.filter?.category as CategoryType | undefined,
     symptomsOnly: route.params?.filter?.symptomsOnly ?? false,
   });
+  const [activeDatePicker, setActiveDatePicker] = React.useState<"from" | "to" | null>(null);
+
+  function handleDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
+    const field = activeDatePicker;
+    setActiveDatePicker(null);
+
+    if (event.type !== "set" || !selectedDate || !field) {
+      return;
+    }
+
+    setFilter((current) => ({ ...current, [field]: toLocalDateValue(selectedDate) }));
+  }
+
+  const activeDateValue = activeDatePicker ? fromLocalDateValue(filter[activeDatePicker]) ?? new Date() : null;
 
   return (
     <Screen>
-      <Field label="Från datum" hint="YYYY-MM-DD">
-        <TextInput
-          style={styles.input}
-          autoCapitalize="none"
-          value={filter.from}
-          onChangeText={(from) => setFilter((current) => ({ ...current, from }))}
+      <Field label="Från datum" hint="Valfritt">
+        <PrimaryButton
+          label={filter.from || "Välj från-datum"}
+          variant="secondary"
+          onPress={() => setActiveDatePicker("from")}
         />
+        {filter.from ? (
+          <PrimaryButton
+            label="Rensa från-datum"
+            variant="secondary"
+            onPress={() => setFilter((current) => ({ ...current, from: "" }))}
+          />
+        ) : null}
       </Field>
 
-      <Field label="Till datum" hint="YYYY-MM-DD">
-        <TextInput
-          style={styles.input}
-          autoCapitalize="none"
-          value={filter.to}
-          onChangeText={(to) => setFilter((current) => ({ ...current, to }))}
+      <Field label="Till datum" hint="Valfritt">
+        <PrimaryButton
+          label={filter.to || "Välj till-datum"}
+          variant="secondary"
+          onPress={() => setActiveDatePicker("to")}
         />
+        {filter.to ? (
+          <PrimaryButton
+            label="Rensa till-datum"
+            variant="secondary"
+            onPress={() => setFilter((current) => ({ ...current, to: "" }))}
+          />
+        ) : null}
       </Field>
+
+      {activeDatePicker && activeDateValue ? (
+        <DateTimePicker
+          value={activeDateValue}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      ) : null}
 
       <Field label="Kategori">
         <View style={styles.categoryGroup}>
@@ -92,16 +132,6 @@ export function FilterScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  input: {
-    backgroundColor: "#ffffff",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#ddc8b2",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#261a13",
-  },
   categoryGroup: {
     flexDirection: "row",
     flexWrap: "wrap",

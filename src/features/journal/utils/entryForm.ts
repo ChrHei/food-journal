@@ -1,7 +1,7 @@
 import type { CategoryType } from "@/domain/categories";
 import type { JournalEntry } from "@/domain/journal";
 
-import { toLocalInputValue } from "./date";
+import { roundDownToFiveMinutes, toLocalInputValue } from "./date";
 
 export type EntryFormValues = {
   timestampLocal: string;
@@ -12,7 +12,7 @@ export type EntryFormValues = {
 
 export function createDefaultEntryFormValues(nowIso = new Date().toISOString()): EntryFormValues {
   return {
-    timestampLocal: toLocalInputValue(nowIso),
+    timestampLocal: toLocalInputValue(roundDownToFiveMinutes(new Date(nowIso)).toISOString()),
     category: "Frukost",
     text: "",
     symptomFlag: false,
