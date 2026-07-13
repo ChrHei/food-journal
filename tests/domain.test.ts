@@ -7,6 +7,7 @@ describe("domain rules", () => {
       "Frukost",
       "Lunch",
       "Middag",
+      "Mellanmål",
       "Kvällsmat",
       "Dryck",
       "Medicin",
@@ -16,8 +17,8 @@ describe("domain rules", () => {
 
   it("recognizes valid categories", () => {
     expect(isCategoryType("Medicin")).toBe(true);
+    expect(isCategoryType("Mellanmål")).toBe(true);
     expect(isCategoryType("Symptom")).toBe(false);
-    expect(isCategoryType("Mellanmål")).toBe(false);
   });
 
   it("validates required fields", () => {

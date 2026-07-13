@@ -23,7 +23,7 @@ describe("repository helpers", () => {
   });
 
   it("normalizes legacy excel categories", () => {
-    expect(normalizeLegacyCategory(" Mellanmål ")).toBe("Anteckning");
+    expect(normalizeLegacyCategory(" Mellanmål ")).toBe("Mellanmål");
     expect(normalizeLegacyCategory("Symptom")).toBe("Anteckning");
     expect(normalizeLegacyCategory("Okänd")).toBe("IGNORE");
   });

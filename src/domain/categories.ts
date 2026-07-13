@@ -2,6 +2,7 @@ export const categoryOptions = [
   "Frukost",
   "Lunch",
   "Middag",
+  "Mellanmål",
   "Kvällsmat",
   "Dryck",
   "Medicin",
