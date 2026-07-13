@@ -38,3 +38,12 @@ export function areEntryFormValuesEqual(left: EntryFormValues, right: EntryFormV
     left.symptomFlag === right.symptomFlag
   );
 }
+
+export function formatIngredientList(text: string) {
+  return text
+    .replace(/\b(?:komma|och)\b/gi, ",")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(", ");
+}

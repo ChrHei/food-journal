@@ -23,6 +23,7 @@ import { fromLocalInputValue } from "@/features/journal/utils/date";
 import {
   areEntryFormValuesEqual,
   createDefaultEntryFormValues,
+  formatIngredientList,
   mapEntryToEntryFormValues,
   type EntryFormValues,
 } from "@/features/journal/utils/entryForm";
@@ -212,7 +213,10 @@ export function EntryFormScreen({ navigation, route }: Props) {
         </View>
       </Field>
 
-      <Field label="Text" hint="Max 500 tecken">
+      <Field
+        label="Text"
+        hint="Max 500 tecken. När fältet har fokus kan du använda mikrofonen i Gboard för att diktera."
+      >
         <TextInput
           multiline
           numberOfLines={6}
@@ -220,6 +224,11 @@ export function EntryFormScreen({ navigation, route }: Props) {
           value={form.text}
           onChangeText={(text) => setForm((current) => ({ ...current, text }))}
           placeholder="Skriv vad du åt, drack eller tog för medicin."
+        />
+        <PrimaryButton
+          label="Formatera lista"
+          variant="secondary"
+          onPress={() => setForm((current) => ({ ...current, text: formatIngredientList(current.text) }))}
         />
         <Text style={styles.counter}>{form.text.length}/500</Text>
       </Field>
