@@ -7,6 +7,7 @@ import type { RootStackParamList } from "@/app/navigation/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
+import { IconButton } from "@/components/IconButton";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { categoryOptions } from "@/domain/categories";
@@ -44,33 +45,45 @@ export function FilterScreen({ navigation, route }: Props) {
   return (
     <Screen>
       <Field label="Från datum" hint="Valfritt">
-        <PrimaryButton
-          label={filter.from || "Välj från-datum"}
-          variant="secondary"
-          onPress={() => setActiveDatePicker("from")}
-        />
-        {filter.from ? (
-          <PrimaryButton
-            label="Rensa från-datum"
-            variant="secondary"
-            onPress={() => setFilter((current) => ({ ...current, from: "" }))}
-          />
-        ) : null}
+        <View style={styles.dateRow}>
+          <Text style={styles.dateValue}>{filter.from || "Inte valt"}</Text>
+          <View style={styles.dateActions}>
+            <IconButton
+              accessibilityLabel="Välj från-datum"
+              icon="📅"
+              onPress={() => setActiveDatePicker("from")}
+            />
+            {filter.from ? (
+              <IconButton
+                accessibilityLabel="Rensa från-datum"
+                icon="×"
+                tone="danger"
+                onPress={() => setFilter((current) => ({ ...current, from: "" }))}
+              />
+            ) : null}
+          </View>
+        </View>
       </Field>
 
       <Field label="Till datum" hint="Valfritt">
-        <PrimaryButton
-          label={filter.to || "Välj till-datum"}
-          variant="secondary"
-          onPress={() => setActiveDatePicker("to")}
-        />
-        {filter.to ? (
-          <PrimaryButton
-            label="Rensa till-datum"
-            variant="secondary"
-            onPress={() => setFilter((current) => ({ ...current, to: "" }))}
-          />
-        ) : null}
+        <View style={styles.dateRow}>
+          <Text style={styles.dateValue}>{filter.to || "Inte valt"}</Text>
+          <View style={styles.dateActions}>
+            <IconButton
+              accessibilityLabel="Välj till-datum"
+              icon="📅"
+              onPress={() => setActiveDatePicker("to")}
+            />
+            {filter.to ? (
+              <IconButton
+                accessibilityLabel="Rensa till-datum"
+                icon="×"
+                tone="danger"
+                onPress={() => setFilter((current) => ({ ...current, to: "" }))}
+              />
+            ) : null}
+          </View>
+        </View>
       </Field>
 
       {activeDatePicker && activeDateValue ? (
@@ -132,6 +145,26 @@ export function FilterScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  dateValue: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#ddc8b2",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#261a13",
+  },
+  dateActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
   categoryGroup: {
     flexDirection: "row",
     flexWrap: "wrap",

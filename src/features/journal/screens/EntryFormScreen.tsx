@@ -14,6 +14,7 @@ import type { RootStackParamList } from "@/app/navigation/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
+import { IconButton } from "@/components/IconButton";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { categoryOptions } from "@/domain/categories";
@@ -227,18 +228,26 @@ export function EntryFormScreen({ navigation, route }: Props) {
       }
     >
       <Field label="Tidpunkt">
-        <Text style={styles.timestamp}>{formatDateTime(selectedTimestamp.toISOString())}</Text>
-        <PrimaryButton label="Välj datum och tid" variant="secondary" onPress={() => setShowDatePicker(true)} />
-        <PrimaryButton
-          label="Sätt till nu"
-          variant="secondary"
-          onPress={() =>
-            setForm((current) => ({
-              ...current,
-              timestampLocal: createDefaultEntryFormValues().timestampLocal,
-            }))
-          }
-        />
+        <View style={styles.timestampRow}>
+          <Text style={styles.timestamp}>{formatDateTime(selectedTimestamp.toISOString())}</Text>
+          <View style={styles.timestampActions}>
+            <IconButton
+              accessibilityLabel="Välj datum och tid"
+              icon="📅"
+              onPress={() => setShowDatePicker(true)}
+            />
+            <IconButton
+              accessibilityLabel="Sätt tidpunkt till nu"
+              icon="◷"
+              onPress={() =>
+                setForm((current) => ({
+                  ...current,
+                  timestampLocal: createDefaultEntryFormValues().timestampLocal,
+                }))
+              }
+            />
+          </View>
+        </View>
         {showDatePicker ? (
           <DateTimePicker
             value={selectedTimestamp}
@@ -312,6 +321,7 @@ const styles = StyleSheet.create({
     color: "#261a13",
   },
   timestamp: {
+    flex: 1,
     backgroundColor: "#ffffff",
     borderRadius: 14,
     borderWidth: 1,
@@ -320,6 +330,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: "#261a13",
+  },
+  timestampRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  timestampActions: {
+    flexDirection: "row",
+    gap: 8,
   },
   textArea: {
     minHeight: 120,
