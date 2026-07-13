@@ -198,11 +198,15 @@ When the user asks to "finish the branch" or "close the branch", use this exact 
 2. If tracked or untracked changes are present, stop and ask whether to continue. Do not discard, stash, commit, or move those changes without the user's answer.
 3. Record the current feature-branch name.
 4. Push the feature branch if its commits are not already on its upstream. If no upstream exists, create one with `git push -u origin <branch>`.
-5. Fetch the latest remote main branch into local `main` with `git fetch origin main:main`.
-6. Switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
+5. In the main worktree, the main agent must update local `main`: run `git fetch origin main`, then `git merge --ff-only FETCH_HEAD`. Do not fetch directly into `main` from a feature worktree because `main` may be checked out elsewhere.
+6. In the feature worktree, switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
 7. Delete the recorded local feature branch with `git branch -d <branch>`.
+8. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker. Do not use `-D`.
+9. After the branch is deleted, run `git worktree remove <feature-worktree-path>` from the main worktree to deregister and remove the dedicated feature worktree. Verify the result with `git worktree list` and `git branch --list <branch>`.
 
-Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch unless the user asks. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker.
+If `git worktree remove` unregisters the worktree but cannot delete its files because of a Windows path-length error, first verify with `git worktree list` that the worktree is no longer registered. Only then remove the remaining verified worktree directory with Windows long-path support. Do not delete a worktree directory that is still registered.
+
+Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch or close its pull request unless the user explicitly asks.
 
 ## Issues And Pull Requests
 
