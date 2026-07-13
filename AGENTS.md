@@ -160,6 +160,16 @@ Before editing or committing:
 - Before creating a feature branch, run `git fetch origin main` and create the branch directly from `origin/main`.
 - Name agent-created branches with the `codex/` prefix and a short task description.
 
+### Subagent Pull Requests
+
+- Every subagent must choose a random feminine first name for itself before starting work, and use that name consistently in its task communication.
+- A subagent's final report must begin by introducing itself by its chosen name before reporting results, verification, or blockers.
+- A subagent that implements a code or configuration change must create a draft pull request immediately after its first intentional commit has been pushed. Do not wait for the implementation to be complete or for all verification to finish.
+- Use `main` as the draft pull request target unless the task specifies another base branch. Link the relevant GitHub issue when one exists.
+- Push later commits to the same branch so they update the existing draft pull request; never create a duplicate pull request for the branch.
+- Do not create a pull request for read-only investigation, planning, review-only work, or when the user explicitly says not to create one.
+- Report the draft pull request URL promptly, then report completed checks and outstanding manual verification as the work continues.
+
 When committing:
 
 - Review the diff and staged diff before creating the commit.
