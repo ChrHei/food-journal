@@ -198,7 +198,7 @@ When the user asks to "finish the branch" or "close the branch", use this exact 
 2. If tracked or untracked changes are present, stop and ask whether to continue. Do not discard, stash, commit, or move those changes without the user's answer.
 3. Record the current feature-branch name.
 4. Push the feature branch if its commits are not already on its upstream. If no upstream exists, create one with `git push -u origin <branch>`.
-5. Fetch the latest remote main branch with `git fetch origin main`.
+5. Fetch the latest remote main branch into local `main` with `git fetch origin main:main`.
 6. Switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
 7. Delete the recorded local feature branch with `git branch -d <branch>`.
 
