@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { createNewEntryFormNavigationTarget } from "@/app/navigation/entryFormNavigation";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
@@ -32,7 +33,10 @@ export function JournalListScreen({ navigation, route }: Props) {
         />
       </View>
 
-      <PrimaryButton label="Ny post" onPress={() => navigation.navigate("EntryForm")} />
+      <PrimaryButton
+        label="Ny post"
+        onPress={() => navigation.navigate(createNewEntryFormNavigationTarget())}
+      />
 
       {loading ? <ActivityIndicator color="#7a3d13" /> : null}
 

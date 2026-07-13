@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { createEditEntryFormNavigationTarget } from "@/app/navigation/entryFormNavigation";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
@@ -96,7 +97,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
 
       <PrimaryButton
         label="Redigera"
-        onPress={() => navigation.navigate("EntryForm", { entryId: entry.id })}
+        onPress={() => navigation.navigate(createEditEntryFormNavigationTarget(entry.id))}
       />
       <PrimaryButton
         label="Radera"

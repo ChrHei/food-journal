@@ -22,6 +22,7 @@ import { FilterScreen } from "@/features/journal/screens/FilterScreen";
 import { HomeScreen } from "@/features/journal/screens/HomeScreen";
 import { JournalListScreen } from "@/features/journal/screens/JournalListScreen";
 
+import { createNewEntryFormNavigationTarget } from "./entryFormNavigation";
 import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -147,7 +148,10 @@ function AppMenuProvider({ children }: PropsWithChildren) {
       navigationRef.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{ name: screen }],
+          routes:
+            screen === "EntryForm"
+              ? [createNewEntryFormNavigationTarget()]
+              : [{ name: screen }],
         }),
       );
     },
