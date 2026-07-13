@@ -12,6 +12,12 @@ describe("entry form helpers", () => {
     expect(areEntryFormValuesEqual(current, baseline)).toBe(true);
   });
 
+  it("rounds a new default timestamp down to the nearest five minutes", () => {
+    const form = createDefaultEntryFormValues("2026-07-10T07:34:59.999Z");
+
+    expect(form.timestampLocal).toBe("2026-07-10T09:30");
+  });
+
   it("detects edited fields", () => {
     const baseline = createDefaultEntryFormValues("2026-07-10T07:30:00.000Z");
 

@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -13,13 +14,21 @@ import type { RootStackParamList } from "@/app/navigation/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
+import { IconButton } from "@/components/IconButton";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { categoryOptions } from "@/domain/categories";
 import type { JournalEntryInput } from "@/domain/journal";
 import { validateEntryInput } from "@/domain/validation";
 import { useJournalContext } from "@/features/journal/context/JournalProvider";
-import { fromLocalInputValue } from "@/features/journal/utils/date";
+import {
+  formatDateTime,
+  fromLocalDateTimeValue,
+  fromLocalInputValue,
+  mergeLocalDate,
+  mergeLocalTime,
+  toLocalInputValue,
+} from "@/features/journal/utils/date";
 import {
   areEntryFormValuesEqual,
   createDefaultEntryFormValues,
@@ -38,6 +47,8 @@ export function EntryFormScreen({ navigation, route }: Props) {
   const [loadingEntry, setLoadingEntry] = useState(Boolean(entryId));
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const allowExitRef = useRef(false);
   const hasUnsavedChanges = useMemo(
     () => !areEntryFormValuesEqual(form, initialForm),
@@ -153,6 +164,43 @@ export function EntryFormScreen({ navigation, route }: Props) {
     }
   }
 
+  function handleDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
+    setShowDatePicker(false);
+
+    if (event.type !== "set" || !selectedDate) {
+      return;
+    }
+
+    setForm((current) => {
+      const timestamp = fromLocalDateTimeValue(current.timestampLocal) ?? new Date();
+
+      return {
+        ...current,
+        timestampLocal: toLocalInputValue(mergeLocalDate(timestamp, selectedDate).toISOString()),
+      };
+    });
+    setShowTimePicker(true);
+  }
+
+  function handleTimeChange(event: DateTimePickerEvent, selectedTime?: Date) {
+    setShowTimePicker(false);
+
+    if (event.type !== "set" || !selectedTime) {
+      return;
+    }
+
+    setForm((current) => {
+      const timestamp = fromLocalDateTimeValue(current.timestampLocal) ?? new Date();
+
+      return {
+        ...current,
+        timestampLocal: toLocalInputValue(mergeLocalTime(timestamp, selectedTime).toISOString()),
+      };
+    });
+  }
+
+  const selectedTimestamp = fromLocalDateTimeValue(form.timestampLocal) ?? new Date();
+
   if (entryId && (loadingEntry || !ready)) {
     return (
       <Screen>
@@ -179,23 +227,44 @@ export function EntryFormScreen({ navigation, route }: Props) {
         />
       }
     >
-      <Field label="Tidpunkt" hint="Använd formatet YYYY-MM-DDTHH:mm, till exempel 2026-07-09T08:30">
-        <TextInput
-          autoCapitalize="none"
-          style={styles.input}
-          value={form.timestampLocal}
-          onChangeText={(timestampLocal) => setForm((current) => ({ ...current, timestampLocal }))}
-        />
-        <PrimaryButton
-          label="Sätt till nu"
-          variant="secondary"
-          onPress={() =>
-            setForm((current) => ({
-              ...current,
-              timestampLocal: createDefaultEntryFormValues().timestampLocal,
-            }))
-          }
-        />
+      <Field label="Tidpunkt">
+        <View style={styles.timestampRow}>
+          <Text style={styles.timestamp}>{formatDateTime(selectedTimestamp.toISOString())}</Text>
+          <View style={styles.timestampActions}>
+            <IconButton
+              accessibilityLabel="Välj datum och tid"
+              icon="📅"
+              onPress={() => setShowDatePicker(true)}
+            />
+            <IconButton
+              accessibilityLabel="Sätt tidpunkt till nu"
+              icon="◷"
+              onPress={() =>
+                setForm((current) => ({
+                  ...current,
+                  timestampLocal: createDefaultEntryFormValues().timestampLocal,
+                }))
+              }
+            />
+          </View>
+        </View>
+        {showDatePicker ? (
+          <DateTimePicker
+            value={selectedTimestamp}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        ) : null}
+        {showTimePicker ? (
+          <DateTimePicker
+            value={selectedTimestamp}
+            mode="time"
+            display="default"
+            is24Hour
+            onChange={handleTimeChange}
+          />
+        ) : null}
       </Field>
 
       <Field label="Kategori">
@@ -250,6 +319,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: "#261a13",
+  },
+  timestamp: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#ddc8b2",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#261a13",
+  },
+  timestampRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  timestampActions: {
+    flexDirection: "row",
+    gap: 8,
   },
   textArea: {
     minHeight: 120,

@@ -14,6 +14,57 @@ export function toLocalInputValue(isoString: string) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+export function toLocalDateValue(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function fromLocalDateValue(value: string) {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function fromLocalDateTimeValue(value: string) {
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function mergeLocalDate(current: Date, selectedDate: Date) {
+  return new Date(
+    selectedDate.getFullYear(),
+    selectedDate.getMonth(),
+    selectedDate.getDate(),
+    current.getHours(),
+    current.getMinutes(),
+  );
+}
+
+export function mergeLocalTime(current: Date, selectedTime: Date) {
+  return new Date(
+    current.getFullYear(),
+    current.getMonth(),
+    current.getDate(),
+    selectedTime.getHours(),
+    selectedTime.getMinutes(),
+  );
+}
+
+export function roundDownToFiveMinutes(date: Date) {
+  const rounded = new Date(date);
+  rounded.setMinutes(rounded.getMinutes() - (rounded.getMinutes() % 5), 0, 0);
+
+  return rounded;
+}
+
 export function fromLocalInputValue(value: string) {
   if (!value.trim()) {
     return "";
