@@ -1,24 +1,30 @@
 import type { RootStackParamList } from "./types";
 
-type EntryFormNavigationTarget = {
+type NewEntryFormRoute = {
+  name: "EntryForm";
+  key: string;
+  params: RootStackParamList["EntryForm"];
+};
+
+type EditEntryFormNavigationTarget = {
   name: "EntryForm";
   params: RootStackParamList["EntryForm"];
   merge: false;
 };
 
-let newEntrySessionId = 0;
+let newEntryRouteId = 0;
 
-export function createNewEntryFormNavigationTarget(): EntryFormNavigationTarget {
+export function createNewEntryFormRoute(): NewEntryFormRoute {
   return {
     name: "EntryForm",
-    params: { newEntrySessionId: ++newEntrySessionId },
-    merge: false,
+    key: `new-entry-${++newEntryRouteId}`,
+    params: undefined,
   };
 }
 
 export function createEditEntryFormNavigationTarget(
   entryId: string,
-): EntryFormNavigationTarget {
+): EditEntryFormNavigationTarget {
   return {
     name: "EntryForm",
     params: { entryId },

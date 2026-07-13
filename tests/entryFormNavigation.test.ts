@@ -1,29 +1,27 @@
 import {
   createEditEntryFormNavigationTarget,
-  createNewEntryFormNavigationTarget,
+  createNewEntryFormRoute,
 } from "@/app/navigation/entryFormNavigation";
 
 describe("entry form navigation", () => {
-  it("clears an edit route's entry id and creates a new form session", () => {
+  it("creates a fresh route without an edit entry id", () => {
     const editTarget = createEditEntryFormNavigationTarget("entry-123");
-    const newTarget = createNewEntryFormNavigationTarget();
+    const newRoute = createNewEntryFormRoute();
 
     expect(editTarget).toEqual({
       name: "EntryForm",
       params: { entryId: "entry-123" },
       merge: false,
     });
-    expect(newTarget).toMatchObject({
+    expect(newRoute).toEqual({
       name: "EntryForm",
-      params: { newEntrySessionId: expect.any(Number) },
-      merge: false,
+      key: expect.any(String),
+      params: undefined,
     });
   });
 
-  it("creates a distinct session for each new entry navigation", () => {
-    expect(createNewEntryFormNavigationTarget().params).not.toEqual(
-      createNewEntryFormNavigationTarget().params,
-    );
+  it("creates a distinct route for each new entry navigation", () => {
+    expect(createNewEntryFormRoute().key).not.toEqual(createNewEntryFormRoute().key);
   });
 
   it("opens edit mode with the selected entry id", () => {

@@ -7,7 +7,6 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { SymptomBadge } from "@/components/SymptomBadge";
 import type { RootStackParamList } from "@/app/navigation/types";
-import { createNewEntryFormNavigationTarget } from "@/app/navigation/entryFormNavigation";
 import { categoryOptions } from "@/domain/categories";
 import { useJournalEntries } from "@/features/journal/hooks/useJournalEntries";
 
@@ -124,7 +123,7 @@ export function HomeScreen({ navigation, onOpenMenu }: Props & HomeScreenOwnProp
 
       <PrimaryButton
         label="+ Nytt inlägg"
-        onPress={() => navigation.navigate(createNewEntryFormNavigationTarget())}
+        onPress={() => navigation.push("EntryForm")}
       />
     </Screen>
   );
