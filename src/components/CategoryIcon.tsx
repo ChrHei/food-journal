@@ -86,6 +86,27 @@ function renderCategoryShape(category: CategoryType | "Symptom", strokeWidth: nu
           <Circle cx="32" cy="20" r="3" fill={RED} stroke={STROKE} strokeWidth={strokeWidth} />
         </>
       );
+    case "Mellanmål":
+      return (
+        <>
+          <Path
+            d="M32 18c8 0 15 7 15 16 0 11-7 18-15 18s-15-7-15-18c0-9 7-16 15-16z"
+            fill={RED}
+            stroke={STROKE}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
+          <Path d="M32 18c1-5 5-8 10-8" stroke={STROKE} strokeWidth={strokeWidth} strokeLinecap="round" />
+          <Path
+            d="M37 14c3-4 8-4 11-1-3 4-8 5-11 1z"
+            fill={GREEN}
+            stroke={STROKE}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
+          <Path d="M25 31c4 2 10 2 14 0" stroke={PINK} strokeWidth={strokeWidth} strokeLinecap="round" />
+        </>
+      );
     case "Kvällsmat":
       return (
         <>

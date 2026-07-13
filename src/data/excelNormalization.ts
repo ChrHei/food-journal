@@ -9,7 +9,7 @@ const legacyCategoryMap: Record<string, CategoryType | "IGNORE"> = {
   Medicin: "Medicin",
   Anteckning: "Anteckning",
   Symptom: "Anteckning",
-  Mellanmål: "Anteckning",
+  Mellanmål: "Mellanmål",
 };
 
 export function normalizeLegacyCategory(rawCategory: string) {
