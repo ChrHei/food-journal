@@ -1,4 +1,5 @@
 import {
+  createCopyEntryFormNavigationTarget,
   createEditEntryFormNavigationTarget,
   createNewEntryFormRoute,
 } from "@/app/navigation/entryFormNavigation";
@@ -28,6 +29,14 @@ describe("entry form navigation", () => {
     expect(createEditEntryFormNavigationTarget("entry-456")).toEqual({
       name: "EntryForm",
       params: { entryId: "entry-456" },
+      merge: false,
+    });
+  });
+
+  it("opens a new form with copied category and text", () => {
+    expect(createCopyEntryFormNavigationTarget({ category: "Lunch", text: "Soppa" })).toEqual({
+      name: "EntryForm",
+      params: { copy: { category: "Lunch", text: "Soppa" } },
       merge: false,
     });
   });

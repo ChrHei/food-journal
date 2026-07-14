@@ -1,4 +1,5 @@
 import type { RootStackParamList } from "./types";
+import type { JournalEntry } from "@/domain/journal";
 
 type NewEntryFormRoute = {
   name: "EntryForm";
@@ -28,6 +29,16 @@ export function createEditEntryFormNavigationTarget(
   return {
     name: "EntryForm",
     params: { entryId },
+    merge: false,
+  };
+}
+
+export function createCopyEntryFormNavigationTarget(
+  entry: Pick<JournalEntry, "category" | "text">,
+): EditEntryFormNavigationTarget {
+  return {
+    name: "EntryForm",
+    params: { copy: { category: entry.category, text: entry.text } },
     merge: false,
   };
 }

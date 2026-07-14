@@ -30,6 +30,17 @@ export function mapEntryToEntryFormValues(
   };
 }
 
+export function createCopiedEntryFormValues(
+  entry: Pick<JournalEntry, "category" | "text">,
+  nowIso = new Date().toISOString(),
+): EntryFormValues {
+  return {
+    ...createDefaultEntryFormValues(nowIso),
+    category: entry.category,
+    text: entry.text,
+  };
+}
+
 export function areEntryFormValuesEqual(left: EntryFormValues, right: EntryFormValues) {
   return (
     left.timestampLocal === right.timestampLocal &&
