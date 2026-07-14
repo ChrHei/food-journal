@@ -1,5 +1,6 @@
 import {
   areEntryFormValuesEqual,
+  createCopiedEntryFormValues,
   createDefaultEntryFormValues,
   formatIngredientList,
   mapEntryToEntryFormValues,
@@ -61,6 +62,17 @@ describe("entry form helpers", () => {
       category: "Lunch",
       text: "Soppa",
       symptomFlag: true,
+    });
+  });
+
+  it("copies category and text while retaining new-entry defaults", () => {
+    const now = "2026-07-10T07:34:59.999Z";
+
+    expect(createCopiedEntryFormValues({ category: "Middag", text: "Pasta" }, now)).toEqual({
+      timestampLocal: createDefaultEntryFormValues(now).timestampLocal,
+      category: "Middag",
+      text: "Pasta",
+      symptomFlag: false,
     });
   });
 

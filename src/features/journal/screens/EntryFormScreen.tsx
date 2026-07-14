@@ -31,6 +31,7 @@ import {
 } from "@/features/journal/utils/date";
 import {
   areEntryFormValuesEqual,
+  createCopiedEntryFormValues,
   createDefaultEntryFormValues,
   formatIngredientList,
   mapEntryToEntryFormValues,
@@ -41,6 +42,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "EntryForm">;
 
 export function EntryFormScreen({ navigation, route }: Props) {
   const entryId = route.params?.entryId;
+  const copy = route.params?.copy;
   const { ready, repository, refresh } = useJournalContext();
   const initialDefaultFormRef = useRef<EntryFormValues>(createDefaultEntryFormValues());
   const [form, setForm] = useState<EntryFormValues>(initialDefaultFormRef.current);
@@ -58,7 +60,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (!entryId) {
-      const nextForm = createDefaultEntryFormValues();
+      const nextForm = copy ? createCopiedEntryFormValues(copy) : createDefaultEntryFormValues();
       allowExitRef.current = false;
       setForm(nextForm);
       setInitialForm(nextForm);
@@ -106,7 +108,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
     return () => {
       active = false;
     };
-  }, [entryId, ready, repository]);
+  }, [copy, entryId, ready, repository]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {

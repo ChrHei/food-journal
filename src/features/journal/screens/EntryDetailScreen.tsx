@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
-import { createEditEntryFormNavigationTarget } from "@/app/navigation/entryFormNavigation";
+import {
+  createCopyEntryFormNavigationTarget,
+  createEditEntryFormNavigationTarget,
+} from "@/app/navigation/entryFormNavigation";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
@@ -98,6 +101,11 @@ export function EntryDetailScreen({ navigation, route }: Props) {
       <PrimaryButton
         label="Redigera"
         onPress={() => navigation.navigate(createEditEntryFormNavigationTarget(entry.id))}
+      />
+      <PrimaryButton
+        label="Kopiera"
+        variant="secondary"
+        onPress={() => navigation.push("EntryForm", createCopyEntryFormNavigationTarget(entry).params)}
       />
       <PrimaryButton
         label="Radera"
