@@ -149,16 +149,30 @@ Do not use `npm audit fix --force` as a substitute for an SDK-aligned dependency
 
 ## Git Workflow
 
-Treat every branch other than `main` as a feature branch.
+The principal repository directory is the control point and stays on `main`. Treat every other branch as a feature branch.
 
-Before editing or committing:
+### Worktree Lifecycle
 
-- Inspect `git status` and preserve unrelated user changes.
-- Use `main` as the default base unless the task specifies another branch.
-- Local `main` may be checked out in multiple worktrees only to support branch cleanup. Use `git switch --ignore-other-worktrees main` to bypass Git's multiple-worktree warning.
-- Never edit, stage, commit, or push code, documentation, configuration, dependencies, or generated files directly on `main`. All repository changes must be made on a feature branch.
-- Before creating a feature branch, run `git fetch origin main` and create the branch directly from `origin/main`.
-- Name agent-created branches with the `codex/` prefix and a short task description.
+For every user-requested repository task, the main agent works in a dedicated worktree under `<repo>/.worktrees/`, whether or not subagents are involved. Continue using that worktree for the same task and feature branch; create a separate worktree for a separate feature branch. Never edit, stage, commit, or otherwise change feature work from the principal repository directory.
+
+Before work on a feature task:
+
+1. In the principal repository directory, inspect `git status` and preserve unrelated user changes.
+2. Ensure the principal directory is on `main` (`git switch --ignore-other-worktrees main`), then run `git fetch origin main`.
+3. Create the feature branch directly from `origin/main`, using the `users/chrhei/` prefix and a short task description, and add its dedicated worktree under `.worktrees/`.
+4. Perform all task work in that feature worktree. Use `main` as the base unless the task specifies another branch.
+
+For a read-only repository task, create a detached worktree based on `main` unless a branch is needed. Local `main` may be checked out in another worktree only for branch cleanup.
+
+### Commit and Push Rules
+
+- Review both the diff and staged diff before committing.
+- Exclude generated output, caches, secrets, and unrelated files.
+- If the user asks to check in changes without narrowing scope, include all files belonging to the completed task.
+- Use short descriptive English commit messages without Conventional Commits prefixes. Do not amend an existing commit unless the user explicitly asks.
+- Push immediately after every successful commit. Push to the configured upstream, or create one with `git push -u origin <branch>`, and verify that it succeeded before reporting it.
+- If a push fails, keep the local commit, report the exact error, and do not claim that the remote branch or pull request was updated.
+- Never push directly to `main` unless the user explicitly requests it. Never use destructive commands such as `git reset --hard` or `git checkout --` to discard work unless the user explicitly authorizes that action.
 
 ### Subagent Workflow
 
@@ -168,46 +182,23 @@ Before editing or committing:
 - The parent agent must learn that chosen name as soon as delegation starts. In every user-facing update, refer to the subagent directly by name; once the name is known, do not call it "the agent," say "the agent is named X," or expose its internal task identifier.
 - When the user specifies a reasoning level for delegated work, pass that level to the subagent when spawning it.
 - A subagent's final report must begin by introducing itself by its chosen name before reporting results, verification, or blockers.
-- A subagent that implements a code or configuration change must create a ready-for-review pull request immediately after its first intentional commit has been pushed. Do not wait for the implementation to be complete or for all verification to finish.
+- A subagent that implements a code or configuration change must create a ready-for-review pull request immediately after its first intentional commit has been pushed and the checks required before committing have passed. Do not wait for the implementation to be complete or for later, non-blocking verification.
 - If a subagent reports that a required push or pull request is blocked, the parent agent must independently verify the failure and complete the publication step with its own available tools when possible. Do not end the requested implementation merely because the subagent's preferred GitHub tool failed.
 - Use `main` as the pull request target unless the task specifies another base branch. Link the relevant GitHub issue when one exists.
 - Push later commits to the same branch so they update the existing pull request; never create a duplicate pull request for the branch.
 - Do not create a pull request for read-only investigation, planning, review-only work, or when the user explicitly says not to create one.
 - Report the ready-for-review pull request URL promptly, then report completed checks and outstanding manual verification as the work continues.
 
-When committing:
-
-- Review the diff and staged diff before creating the commit.
-- Exclude generated output, caches, secrets, and unrelated files.
-- If the user asks to check in changes without narrowing scope, include all files belonging to the completed task.
-- Use short descriptive English messages without Conventional Commits prefixes.
-- Do not amend an existing commit unless the user explicitly asks.
-
-After committing on a feature branch:
-
-- Always push immediately after every successful commit; a request to check in changes implicitly includes this push.
-- Push to the configured upstream when it exists.
-- If no upstream exists, run `git push -u origin <branch>`.
-- Verify that the push succeeded before reporting completion.
-- If the push fails, keep the local commit, report the exact error, and do not claim that the remote branch or pull request was updated.
-
-Never push directly to `main` unless the user explicitly requests it. Never use destructive commands such as `git reset --hard` or `git checkout --` to discard work unless the user explicitly authorizes that action.
-
 ### Closing A Feature Branch
 
 When the user asks to "finish the branch" or "close the branch", use this exact workflow:
 
-1. Inspect `git status` before performing any push, fetch, switch, or deletion.
-2. If tracked or untracked changes are present, stop and ask whether to continue. Do not discard, stash, commit, or move those changes without the user's answer.
-3. Record the current feature-branch name.
-4. Push the feature branch if its commits are not already on its upstream. If no upstream exists, create one with `git push -u origin <branch>`.
-5. In the main worktree, the main agent must update local `main`: run `git fetch origin main`, then `git merge --ff-only FETCH_HEAD`. Do not fetch directly into `main` from a feature worktree because `main` may be checked out elsewhere.
-6. In the feature worktree, switch to local `main` with `git switch --ignore-other-worktrees main`. Always use this command even when `main` is already checked out in another worktree.
-7. Delete the recorded local feature branch with `git branch -d <branch>`.
-8. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker. Do not use `-D`.
-9. After the branch is deleted, run `git worktree remove <feature-worktree-path>` from the main worktree to deregister and remove the dedicated feature worktree. Verify the result with `git worktree list` and `git branch --list <branch>`.
-
-If `git worktree remove` unregisters the worktree but cannot delete its files because of a Windows path-length error, first verify with `git worktree list` that the worktree is no longer registered. Only then remove the remaining verified worktree directory with Windows long-path support. Do not delete a worktree directory that is still registered.
+1. In the feature worktree, inspect `git status`. If tracked or untracked changes are present, stop and ask whether to continue; do not discard, stash, commit, or move them without the user's answer.
+2. Record the feature branch and worktree path. Push the branch if its commits are not already on its upstream; create the upstream with `git push -u origin <branch>` when needed.
+3. In the principal repository directory, switch to `main` with `git switch --ignore-other-worktrees main`, run `git fetch origin main`, then `git merge --ff-only FETCH_HEAD`.
+4. Still in the principal directory on `main`, run `git worktree remove <feature-worktree-path>`. Never remove a worktree from inside itself.
+5. Still in the principal directory on `main`, run `git branch -d <branch>`. If safe deletion fails because the branch is not merged into local `main`, stop and report that blocker; do not use `-D`.
+6. Verify with `git worktree list` and `git branch --list <branch>`. If an unregistered, clean directory remains under `.worktrees/`, remove that exact directory. If Git could not remove it because of a Windows path-length error, first verify that it is unregistered and clean, then remove it with Windows long-path support. Never remove a registered worktree or a directory containing user changes.
 
 Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicitly authorizes losing an unmerged local branch. Do not delete the remote feature branch or close its pull request unless the user explicitly asks.
 
