@@ -8,6 +8,7 @@ export type JournalRepository = {
   deleteEntry: (id: string) => Promise<void>;
   getEntry: (id: string) => Promise<JournalEntry | null>;
   listEntries: (filter?: JournalFilter) => Promise<JournalEntry[]>;
+  importEntries: (entries: JournalEntry[]) => Promise<{ imported: number; skipped: number }>;
 };
 
 export function createJournalRepository(): JournalRepository {
@@ -103,6 +104,42 @@ export function createJournalRepository(): JournalRepository {
       const { query, params } = buildListEntriesQuery(filter);
       const rows = await db.getAllAsync<JournalEntryRow>(query, ...params);
       return rows.map(mapRow);
+    },
+
+    async importEntries(entries) {
+      const db = await getDatabase();
+      let imported = 0;
+      let skipped = 0;
+
+      await db.withExclusiveTransactionAsync(async (transaction) => {
+        for (const entry of entries) {
+          const existing = await transaction.getFirstAsync<{ id: string }>(
+            `SELECT id FROM ${JOURNAL_TABLE_NAME} WHERE id = ?`,
+            entry.id,
+          );
+
+          if (existing) {
+            skipped += 1;
+            continue;
+          }
+
+          await transaction.runAsync(
+            `INSERT INTO ${JOURNAL_TABLE_NAME} (
+              id, timestamp, category, text, symptom_flag, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            entry.id,
+            entry.timestamp,
+            entry.category,
+            entry.text,
+            entry.symptomFlag ? 1 : 0,
+            entry.createdAt,
+            entry.updatedAt,
+          );
+          imported += 1;
+        }
+      });
+
+      return { imported, skipped };
     },
   };
 }
