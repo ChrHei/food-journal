@@ -165,8 +165,11 @@ Before editing or committing:
 - Every subagent must work in a dedicated Git worktree that is separate from the parent agent's checkout and every other subagent's worktree. The parent agent must provision that worktree before delegating implementation work.
 - A subagent must never switch branches, commit, stage, or otherwise change Git state in the parent agent's checkout or another subagent's worktree.
 - Every subagent must choose a random feminine first name for itself before starting work, and use that name consistently in its task communication.
+- The parent agent must learn that chosen name as soon as delegation starts. In every user-facing update, refer to the subagent directly by name; once the name is known, do not call it "the agent," say "the agent is named X," or expose its internal task identifier.
+- When the user specifies a reasoning level for delegated work, pass that level to the subagent when spawning it.
 - A subagent's final report must begin by introducing itself by its chosen name before reporting results, verification, or blockers.
 - A subagent that implements a code or configuration change must create a ready-for-review pull request immediately after its first intentional commit has been pushed. Do not wait for the implementation to be complete or for all verification to finish.
+- If a subagent reports that a required push or pull request is blocked, the parent agent must independently verify the failure and complete the publication step with its own available tools when possible. Do not end the requested implementation merely because the subagent's preferred GitHub tool failed.
 - Use `main` as the pull request target unless the task specifies another base branch. Link the relevant GitHub issue when one exists.
 - Push later commits to the same branch so they update the existing pull request; never create a duplicate pull request for the branch.
 - Do not create a pull request for read-only investigation, planning, review-only work, or when the user explicitly says not to create one.
@@ -213,6 +216,7 @@ Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicit
 - Treat GitHub CLI authentication errors reported inside the sandbox as potentially caused by blocked network access. If an important `gh` command fails with a socket, connection, or apparent token-validation error, retry the same command with approved network escalation before asking the user to authenticate again.
 - Ask the user to run a new GitHub device authentication only when an escalated, unsandboxed GitHub request returns an explicit authentication failure such as HTTP `401` or `Bad credentials`. Do not infer that reauthentication is needed from a sandboxed `gh auth status` result alone.
 - A GitHub connector response of `403 Resource not accessible by integration` means the connector lacks the required app or repository permission. It does not mean the user's GitHub CLI login is invalid. Fall back to an escalated `gh` command when that remains within the requested workflow.
+- Do not describe a pushed branch or commit as a pull request until GitHub confirms that the pull request exists and provides its number or URL. When the workflow requires a pull request, verify its existence before reporting completion.
 - When the user asks only to create or update a GitHub issue, make no code, configuration, dependency, test, or documentation changes in the same task. Create the issue only; implementation requires a separate explicit request.
 - Create pull requests as ready for review. Do not create draft pull requests unless the user explicitly asks for a draft.
 - Use `main` as the default pull-request target unless another base is specified.
