@@ -210,6 +210,9 @@ Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicit
 
 ## Issues And Pull Requests
 
+- Treat GitHub CLI authentication errors reported inside the sandbox as potentially caused by blocked network access. If an important `gh` command fails with a socket, connection, or apparent token-validation error, retry the same command with approved network escalation before asking the user to authenticate again.
+- Ask the user to run a new GitHub device authentication only when an escalated, unsandboxed GitHub request returns an explicit authentication failure such as HTTP `401` or `Bad credentials`. Do not infer that reauthentication is needed from a sandboxed `gh auth status` result alone.
+- A GitHub connector response of `403 Resource not accessible by integration` means the connector lacks the required app or repository permission. It does not mean the user's GitHub CLI login is invalid. Fall back to an escalated `gh` command when that remains within the requested workflow.
 - When the user asks only to create or update a GitHub issue, make no code, configuration, dependency, test, or documentation changes in the same task. Create the issue only; implementation requires a separate explicit request.
 - Create pull requests as ready for review. Do not create draft pull requests unless the user explicitly asks for a draft.
 - Use `main` as the default pull-request target unless another base is specified.
