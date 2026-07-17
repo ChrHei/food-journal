@@ -211,6 +211,7 @@ Use safe deletion (`-d`), never forced deletion (`-D`), unless the user explicit
 ## Issues And Pull Requests
 
 - When the user asks only to create or update a GitHub issue, make no code, configuration, dependency, test, or documentation changes in the same task. Create the issue only; implementation requires a separate explicit request.
+- Create pull requests as ready for review. Do not create draft pull requests unless the user explicitly asks for a draft.
 - Use `main` as the default pull-request target unless another base is specified.
 - Keep the PR summary concise and describe user-visible behavior rather than listing every file.
 - Include lint, test, and Android-export results when they were required.
