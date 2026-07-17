@@ -39,6 +39,12 @@
     "testMatch": [
       "**/tests/**/*.test.ts"
     ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.worktrees/"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/.worktrees/"
+    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     }
