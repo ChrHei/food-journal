@@ -12,4 +12,5 @@ export type RootStackParamList = {
     | undefined;
   EntryDetail: { entryId: string };
   Filter: { filter?: JournalFilter } | undefined;
+  Backup: undefined;
 };
