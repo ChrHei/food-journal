@@ -6,6 +6,7 @@ import type { RootStackParamList } from "@/app/navigation/types";
 import { CategoryChoices } from "@/components/CategoryChoices";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { Field } from "@/components/Field";
+import { IconButton } from "@/components/IconButton";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import {
@@ -264,33 +265,28 @@ function PeriodRow({
 }) {
   return (
     <View style={styles.periodRow}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Redigera period ${index + 1}, ${period.category} ${period.startTime} till ${period.endTime}`}
-        disabled={busy}
-        onPress={onEdit}
-        style={({ pressed }) => [styles.editArea, pressed && styles.pressed]}
-      >
-        <CategoryIcon category={period.category} size={28} />
-        <View style={styles.periodCopy}>
-          <Text numberOfLines={1} style={styles.periodCategory}>
-            {period.category}
-          </Text>
-          <Text style={styles.periodTime}>
-            {period.startTime}–{period.endTime}
-          </Text>
-        </View>
-        <Text style={styles.editLabel}>Redigera ›</Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Ta bort period ${index + 1}`}
-        disabled={busy}
-        onPress={onRemove}
-        style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
-      >
-        <Text style={styles.removeLabel}>{deleting ? "Tar bort..." : "Ta bort"}</Text>
-      </Pressable>
+      <CategoryIcon category={period.category} size={26} />
+      <Text numberOfLines={1} style={styles.periodSummary}>
+        <Text style={styles.periodCategory}>{period.category}</Text>
+        <Text style={styles.periodTime}> · {period.startTime}–{period.endTime}</Text>
+      </Text>
+      <View style={styles.periodActions}>
+        <IconButton
+          accessibilityLabel={`Redigera period ${index + 1}, ${period.category} ${period.startTime} till ${period.endTime}`}
+          disabled={busy}
+          icon="✎"
+          onPress={onEdit}
+          size="compact"
+        />
+        <IconButton
+          accessibilityLabel={`Ta bort period ${index + 1}`}
+          disabled={busy}
+          icon={deleting ? "…" : "×"}
+          onPress={onRemove}
+          size="compact"
+          tone="danger"
+        />
+      </View>
     </View>
   );
 }
@@ -317,27 +313,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  periodRow: { borderBottomColor: "#ead8c9", borderBottomWidth: 1 },
-  editArea: {
+  periodRow: {
     alignItems: "center",
+    borderBottomColor: "#ead8c9",
+    borderBottomWidth: 1,
     flexDirection: "row",
-    gap: 10,
-    minHeight: 64,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
-  periodCopy: { flex: 1, minWidth: 0 },
-  periodCategory: { color: "#3f3024", fontSize: 16, fontWeight: "800" },
-  periodTime: { color: "#6b5b50", marginTop: 2 },
-  editLabel: { color: "#7a3d13", fontWeight: "700" },
-  removeButton: {
-    alignItems: "flex-end",
-    backgroundColor: "#fff6f3",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  removeLabel: { color: "#a74638", fontWeight: "700" },
-  pressed: { opacity: 0.7 },
+  periodSummary: { color: "#3f3024", flex: 1, minWidth: 0 },
+  periodCategory: { fontSize: 15, fontWeight: "800" },
+  periodTime: { color: "#6b5b50", fontSize: 14 },
+  periodActions: { flexDirection: "row", flexShrink: 0, gap: 4 },
   disabled: { opacity: 0.5 },
   error: {
     backgroundColor: "#f8e3df",
