@@ -1,6 +1,7 @@
 import {
   getSuggestedCategory,
   resolveCategoryForTimestamp,
+  upsertCategoryTimePeriod,
   validateCategoryDefaultSettings,
   type CategoryDefaultSettings,
 } from "@/domain/categoryDefaults";
@@ -80,5 +81,38 @@ describe("time-based category defaults", () => {
         ],
       }),
     ).toContain("Period 1 måste ha olika start- och sluttid.");
+  });
+
+  it("adds a new period and replaces an edited period without changing its order", () => {
+    const added = upsertCategoryTimePeriod(settings, {
+      id: "lunch",
+      startTime: "11:00",
+      endTime: "13:00",
+      category: "Lunch",
+    });
+    const edited = upsertCategoryTimePeriod(added, {
+      id: "evening",
+      startTime: "21:00",
+      endTime: "01:00",
+      category: "Middag",
+    });
+
+    expect(added.periods.map((period) => period.id)).toEqual([
+      "breakfast",
+      "evening",
+      "lunch",
+    ]);
+    expect(edited.periods.map((period) => period.id)).toEqual([
+      "breakfast",
+      "evening",
+      "lunch",
+    ]);
+    expect(edited.periods[1]).toEqual({
+      id: "evening",
+      startTime: "21:00",
+      endTime: "01:00",
+      category: "Middag",
+    });
+    expect(settings.periods[1].category).toBe("Kvällsmat");
   });
 });

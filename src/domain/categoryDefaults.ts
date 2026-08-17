@@ -52,6 +52,23 @@ export function resolveCategoryForTimestamp(
     : getSuggestedCategory(settings, timestampLocal);
 }
 
+export function upsertCategoryTimePeriod(
+  settings: CategoryDefaultSettings,
+  period: CategoryTimePeriod,
+): CategoryDefaultSettings {
+  const existingIndex = settings.periods.findIndex((candidate) => candidate.id === period.id);
+
+  return {
+    ...settings,
+    periods:
+      existingIndex === -1
+        ? [...settings.periods, period]
+        : settings.periods.map((candidate, index) =>
+            index === existingIndex ? period : candidate,
+          ),
+  };
+}
+
 export function validateCategoryDefaultSettings(settings: CategoryDefaultSettings) {
   const errors: string[] = [];
 

@@ -106,7 +106,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
         .catch((error) => {
           console.error(error);
           if (active) {
-            setLoadError("Kunde inte läsa kategoriinställningarna.");
+            setLoadError("Kunde inte läsa kategori-inställningarna.");
             setLoadingEntry(false);
           }
         });

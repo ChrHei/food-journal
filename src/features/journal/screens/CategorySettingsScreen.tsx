@@ -1,11 +1,10 @@
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
+import { CategoryChoices } from "@/components/CategoryChoices";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { Chip } from "@/components/Chip";
 import { Field } from "@/components/Field";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
@@ -14,21 +13,19 @@ import {
   type CategoryDefaultSettings,
   type CategoryTimePeriod,
 } from "@/domain/categoryDefaults";
-import { categoryOptions, type CategoryType } from "@/domain/categories";
 import { useJournalContext } from "@/features/journal/context/JournalProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CategorySettings">;
-type TimePickerTarget = { periodId: string; field: "startTime" | "endTime" };
 
-export function CategorySettingsScreen({}: Props) {
+export function CategorySettingsScreen({ navigation, route }: Props) {
   const { categorySettingsRepository, ready } = useJournalContext();
   const [settings, setSettings] = useState<CategoryDefaultSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [timePickerTarget, setTimePickerTarget] = useState<TimePickerTarget | null>(null);
 
   useEffect(() => {
     if (!ready) {
@@ -51,7 +48,7 @@ export function CategorySettingsScreen({}: Props) {
         console.error(loadError);
         if (active) {
           setSettings(null);
-          setLoadError("Kunde inte läsa kategoriinställningarna.");
+          setLoadError("Kunde inte läsa kategori-inställningarna.");
           setLoading(false);
         }
       });
@@ -61,65 +58,15 @@ export function CategorySettingsScreen({}: Props) {
     };
   }, [categorySettingsRepository, loadAttempt, ready]);
 
-  function addPeriod() {
-    setSettings((current) =>
-      current
-        ? {
-            ...current,
-            periods: [
-              ...current.periods,
-              {
-                id: createPeriodId(),
-                startTime: "06:00",
-                endTime: "09:00",
-                category: current.defaultCategory,
-              },
-            ],
-          }
-        : current,
-    );
-    setError(null);
-  }
-
-  function updatePeriod(id: string, update: Partial<CategoryTimePeriod>) {
-    setSettings((current) =>
-      current
-        ? {
-            ...current,
-            periods: current.periods.map((period) =>
-              period.id === id ? { ...period, ...update } : period,
-            ),
-          }
-        : current,
-    );
-    setError(null);
-  }
-
-  function removePeriod(id: string) {
-    setSettings((current) =>
-      current
-        ? {
-            ...current,
-            periods: current.periods.filter((period) => period.id !== id),
-          }
-        : current,
-    );
-    setError(null);
-  }
-
-  function handleTimeChange(event: DateTimePickerEvent, selectedTime?: Date) {
-    const target = timePickerTarget;
-    setTimePickerTarget(null);
-
-    if (!target || event.type !== "set" || !selectedTime) {
+  useEffect(() => {
+    if (!route.params?.updatedSettings) {
       return;
     }
 
-    updatePeriod(target.periodId, {
-      [target.field]: `${selectedTime.getHours()}`.padStart(2, "0") +
-        `:${`${selectedTime.getMinutes()}`.padStart(2, "0")}`,
-    });
-  }
+    setSettings(route.params.updatedSettings);
+    setError(null);
+    navigation.setParams({ updatedSettings: undefined });
+  }, [navigation, route.params?.updatedSettings]);
 
   async function handleSave() {
     if (!settings) {
@@ -140,7 +87,7 @@ export function CategorySettingsScreen({}: Props) {
 
     try {
       await categorySettingsRepository.saveSettings(settings);
-      Alert.alert("Sparat", "Kategoriinställningarna har sparats.");
+      Alert.alert("Sparat", "Kategori-inställningarna har sparats.");
     } catch (saveError) {
       const message =
         saveError instanceof Error ? saveError.message : "Kunde inte spara inställningarna.";
@@ -151,13 +98,46 @@ export function CategorySettingsScreen({}: Props) {
     }
   }
 
-  const selectedTime = timePickerTarget && settings
-    ? getTimePickerValue(
-        settings.periods.find((period) => period.id === timePickerTarget.periodId)?.[
-          timePickerTarget.field
-        ] ?? "00:00",
-      )
-    : new Date();
+  function confirmRemovePeriod(period: CategoryTimePeriod) {
+    Alert.alert(
+      "Ta bort tidsperiod",
+      `Vill du ta bort ${period.category} ${period.startTime}–${period.endTime}?`,
+      [
+        { text: "Avbryt", style: "cancel" },
+        {
+          text: "Ta bort",
+          style: "destructive",
+          onPress: () => void removePeriod(period.id),
+        },
+      ],
+    );
+  }
+
+  async function removePeriod(periodId: string) {
+    if (!settings) {
+      return;
+    }
+
+    const nextSettings = {
+      ...settings,
+      periods: settings.periods.filter((period) => period.id !== periodId),
+    };
+
+    setDeletingPeriodId(periodId);
+    setError(null);
+
+    try {
+      await categorySettingsRepository.saveSettings(nextSettings);
+      setSettings(nextSettings);
+    } catch (removeError) {
+      const message =
+        removeError instanceof Error ? removeError.message : "Kunde inte ta bort tidsperioden.";
+      setError(message);
+      Alert.alert("Kunde inte ta bort", message);
+    } finally {
+      setDeletingPeriodId(null);
+    }
+  }
 
   if (loading || !ready) {
     return (
@@ -180,7 +160,7 @@ export function CategorySettingsScreen({}: Props) {
         <View style={styles.loadErrorCard}>
           <Text style={styles.loadErrorTitle}>Inställningarna kunde inte öppnas</Text>
           <Text style={styles.help}>
-            {loadError ?? "Försök läsa kategoriinställningarna igen."}
+            {loadError ?? "Försök läsa kategori-inställningarna igen."}
           </Text>
         </View>
       </Screen>
@@ -192,13 +172,13 @@ export function CategorySettingsScreen({}: Props) {
       footer={
         <PrimaryButton
           label={saving ? "Sparar..." : "Spara inställningar"}
-          disabled={saving}
+          disabled={saving || deletingPeriodId !== null}
           onPress={handleSave}
         />
       }
     >
       <View style={styles.intro}>
-        <Text style={styles.title}>Automatisk kategori</Text>
+        <Text style={styles.title}>Kategori-inställningar</Text>
         <Text style={styles.help}>
           Nya poster får en kategori utifrån klockslaget. Periodens starttid ingår, men
           sluttiden ingår inte.
@@ -207,12 +187,14 @@ export function CategorySettingsScreen({}: Props) {
 
       <Field label="Standardkategori" hint="Används när ingen tidsperiod matchar.">
         <CategoryChoices
+          disabled={deletingPeriodId !== null}
           value={settings.defaultCategory}
-          onChange={(defaultCategory) =>
+          onChange={(defaultCategory) => {
             setSettings((current) =>
               current ? { ...current, defaultCategory } : current,
-            )
-          }
+            );
+            setError(null);
+          }}
         />
       </Field>
 
@@ -221,104 +203,96 @@ export function CategorySettingsScreen({}: Props) {
           <Text style={styles.sectionTitle}>Tidsperioder</Text>
           <Text style={styles.help}>Perioder får passera midnatt men inte överlappa.</Text>
         </View>
-        <Pressable accessibilityRole="button" onPress={addPeriod} style={styles.addButton}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={deletingPeriodId !== null}
+          onPress={() =>
+            navigation.navigate("CategoryPeriodEditor", {
+              settings,
+              settingsRouteKey: route.key,
+            })
+          }
+          style={[styles.addButton, deletingPeriodId !== null && styles.disabled]}
+        >
           <Text style={styles.addButtonLabel}>+ Lägg till</Text>
         </Pressable>
       </View>
 
       {settings.periods.length === 0 ? (
         <Text style={styles.empty}>Inga tidsperioder har lagts till.</Text>
-      ) : null}
-
-      {settings.periods.map((period, index) => (
-        <View key={period.id} style={styles.periodCard}>
-          <View style={styles.periodHeader}>
-            <Text style={styles.periodTitle}>Period {index + 1}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Ta bort period ${index + 1}`}
-              onPress={() => removePeriod(period.id)}
-            >
-              <Text style={styles.removeLabel}>Ta bort</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.timeRow}>
-            <TimeButton
-              label="Start"
-              value={period.startTime}
-              onPress={() => setTimePickerTarget({ periodId: period.id, field: "startTime" })}
+      ) : (
+        <View style={styles.periodList}>
+          {settings.periods.map((period, index) => (
+            <PeriodRow
+              busy={deletingPeriodId !== null}
+              deleting={deletingPeriodId === period.id}
+              index={index}
+              key={period.id}
+              period={period}
+              onEdit={() =>
+                navigation.navigate("CategoryPeriodEditor", {
+                  settings,
+                  settingsRouteKey: route.key,
+                  periodId: period.id,
+                })
+              }
+              onRemove={() => confirmRemovePeriod(period)}
             />
-            <TimeButton
-              label="Slut"
-              value={period.endTime}
-              onPress={() => setTimePickerTarget({ periodId: period.id, field: "endTime" })}
-            />
-          </View>
-
-          <Text style={styles.categoryLabel}>Kategori</Text>
-          <CategoryChoices
-            value={period.category}
-            onChange={(category) => updatePeriod(period.id, { category })}
-          />
+          ))}
         </View>
-      ))}
+      )}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-
-      {timePickerTarget ? (
-        <DateTimePicker
-          value={selectedTime}
-          mode="time"
-          display="default"
-          is24Hour
-          onChange={handleTimeChange}
-        />
-      ) : null}
     </Screen>
   );
 }
 
-function CategoryChoices({
-  value,
-  onChange,
+function PeriodRow({
+  busy,
+  deleting,
+  index,
+  period,
+  onEdit,
+  onRemove,
 }: {
-  value: CategoryType;
-  onChange: (category: CategoryType) => void;
+  busy: boolean;
+  deleting: boolean;
+  index: number;
+  period: CategoryTimePeriod;
+  onEdit: () => void;
+  onRemove: () => void;
 }) {
   return (
-    <View style={styles.chipGroup}>
-      {categoryOptions.map((category) => (
-        <Chip
-          icon={<CategoryIcon category={category} size={26} />}
-          key={category}
-          label={category}
-          selected={value === category}
-          onPress={() => onChange(category)}
-        />
-      ))}
+    <View style={styles.periodRow}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Redigera period ${index + 1}, ${period.category} ${period.startTime} till ${period.endTime}`}
+        disabled={busy}
+        onPress={onEdit}
+        style={({ pressed }) => [styles.editArea, pressed && styles.pressed]}
+      >
+        <CategoryIcon category={period.category} size={28} />
+        <View style={styles.periodCopy}>
+          <Text numberOfLines={1} style={styles.periodCategory}>
+            {period.category}
+          </Text>
+          <Text style={styles.periodTime}>
+            {period.startTime}–{period.endTime}
+          </Text>
+        </View>
+        <Text style={styles.editLabel}>Redigera ›</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Ta bort period ${index + 1}`}
+        disabled={busy}
+        onPress={onRemove}
+        style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
+      >
+        <Text style={styles.removeLabel}>{deleting ? "Tar bort..." : "Ta bort"}</Text>
+      </Pressable>
     </View>
   );
-}
-
-function TimeButton({ label, value, onPress }: { label: string; value: string; onPress: () => void }) {
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.timeButton}>
-      <Text style={styles.timeLabel}>{label}</Text>
-      <Text style={styles.timeValue}>{value}</Text>
-    </Pressable>
-  );
-}
-
-function getTimePickerValue(time: string) {
-  const [hours, minutes] = time.split(":").map(Number);
-  const value = new Date();
-  value.setHours(hours, minutes, 0, 0);
-  return value;
-}
-
-function createPeriodId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 const styles = StyleSheet.create({
@@ -328,20 +302,50 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
   sectionCopy: { flex: 1, gap: 3 },
   sectionTitle: { color: "#3f3024", fontSize: 18, fontWeight: "800" },
-  addButton: { backgroundColor: "#f2dfce", borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10 },
+  addButton: {
+    backgroundColor: "#f2dfce",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   addButtonLabel: { color: "#7a3d13", fontWeight: "800" },
   empty: { backgroundColor: "#fffaf5", borderRadius: 16, color: "#8d7767", padding: 16 },
-  periodCard: { backgroundColor: "#fffaf5", borderColor: "#ead8c9", borderRadius: 20, borderWidth: 1, gap: 14, padding: 16 },
-  periodHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  periodTitle: { color: "#3f3024", fontSize: 17, fontWeight: "800" },
+  periodList: {
+    backgroundColor: "#fffaf5",
+    borderColor: "#ead8c9",
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  periodRow: { borderBottomColor: "#ead8c9", borderBottomWidth: 1 },
+  editArea: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 64,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  periodCopy: { flex: 1, minWidth: 0 },
+  periodCategory: { color: "#3f3024", fontSize: 16, fontWeight: "800" },
+  periodTime: { color: "#6b5b50", marginTop: 2 },
+  editLabel: { color: "#7a3d13", fontWeight: "700" },
+  removeButton: {
+    alignItems: "flex-end",
+    backgroundColor: "#fff6f3",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
   removeLabel: { color: "#a74638", fontWeight: "700" },
-  timeRow: { flexDirection: "row", gap: 10 },
-  timeButton: { flex: 1, minWidth: 0, backgroundColor: "#ffffff", borderColor: "#ddc8b2", borderRadius: 14, borderWidth: 1, padding: 12 },
-  timeLabel: { color: "#8f715b", fontSize: 11, fontWeight: "700", textTransform: "uppercase" },
-  timeValue: { color: "#261a13", fontSize: 20, fontWeight: "700", marginTop: 4 },
-  categoryLabel: { color: "#8f715b", fontSize: 11, fontWeight: "700", textTransform: "uppercase" },
-  chipGroup: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  error: { backgroundColor: "#f8e3df", borderRadius: 14, color: "#8b2f25", lineHeight: 20, padding: 14 },
+  pressed: { opacity: 0.7 },
+  disabled: { opacity: 0.5 },
+  error: {
+    backgroundColor: "#f8e3df",
+    borderRadius: 14,
+    color: "#8b2f25",
+    lineHeight: 20,
+    padding: 14,
+  },
   status: { color: "#7a3d13", textAlign: "center" },
   loadErrorCard: { backgroundColor: "#f8e3df", borderRadius: 16, gap: 6, padding: 16 },
   loadErrorTitle: { color: "#8b2f25", fontSize: 18, fontWeight: "800" },

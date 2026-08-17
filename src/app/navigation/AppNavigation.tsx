@@ -22,6 +22,7 @@ import { FilterScreen } from "@/features/journal/screens/FilterScreen";
 import { HomeScreen } from "@/features/journal/screens/HomeScreen";
 import { JournalListScreen } from "@/features/journal/screens/JournalListScreen";
 import { BackupScreen } from "@/features/journal/screens/BackupScreen";
+import { CategoryPeriodEditorScreen } from "@/features/journal/screens/CategoryPeriodEditorScreen";
 import { CategorySettingsScreen } from "@/features/journal/screens/CategorySettingsScreen";
 
 import { createNewEntryFormRoute } from "./entryFormNavigation";
@@ -38,7 +39,7 @@ const menuItems: Array<{
   { label: "Ny post", screen: "EntryForm" },
   { label: "Historik", screen: "JournalList" },
   { label: "Säkerhetskopia", screen: "Backup" },
-  { label: "Kategoriinställningar", screen: "CategorySettings" },
+  { label: "Kategori-inställningar", screen: "CategorySettings" },
 ];
 
 type AppMenuContextValue = {
@@ -109,7 +110,14 @@ function JournalStackNavigator() {
       <Stack.Screen
         name="CategorySettings"
         component={CategorySettingsScreen}
-        options={{ title: "Kategoriinställningar" }}
+        options={{ title: "Kategori-inställningar" }}
+      />
+      <Stack.Screen
+        name="CategoryPeriodEditor"
+        component={CategoryPeriodEditorScreen}
+        options={({ route }) => ({
+          title: route.params.periodId ? "Redigera tidsperiod" : "Ny tidsperiod",
+        })}
       />
     </Stack.Navigator>
   );

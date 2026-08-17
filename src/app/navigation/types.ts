@@ -1,4 +1,5 @@
 import type { CategoryType } from "@/domain/categories";
+import type { CategoryDefaultSettings } from "@/domain/categoryDefaults";
 import type { JournalFilter } from "@/domain/journal";
 
 export type RootStackParamList = {
@@ -13,5 +14,10 @@ export type RootStackParamList = {
   EntryDetail: { entryId: string };
   Filter: { filter?: JournalFilter } | undefined;
   Backup: undefined;
-  CategorySettings: undefined;
+  CategorySettings: { updatedSettings?: CategoryDefaultSettings } | undefined;
+  CategoryPeriodEditor: {
+    settings: CategoryDefaultSettings;
+    settingsRouteKey: string;
+    periodId?: string;
+  };
 };
