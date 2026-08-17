@@ -9,7 +9,8 @@
       "android"
     ],
     "android": {
-      "package": "se.christerheinback.matjournal"
+      "package": "se.christerheinback.matjournal",
+      "versionCode": 3
     },
     "assetBundlePatterns": [
       "**/*"
