@@ -22,6 +22,7 @@ import { FilterScreen } from "@/features/journal/screens/FilterScreen";
 import { HomeScreen } from "@/features/journal/screens/HomeScreen";
 import { JournalListScreen } from "@/features/journal/screens/JournalListScreen";
 import { BackupScreen } from "@/features/journal/screens/BackupScreen";
+import { CategorySettingsScreen } from "@/features/journal/screens/CategorySettingsScreen";
 
 import { createNewEntryFormRoute } from "./entryFormNavigation";
 import type { RootStackParamList } from "./types";
@@ -37,6 +38,7 @@ const menuItems: Array<{
   { label: "Ny post", screen: "EntryForm" },
   { label: "Historik", screen: "JournalList" },
   { label: "Säkerhetskopia", screen: "Backup" },
+  { label: "Kategoriinställningar", screen: "CategorySettings" },
 ];
 
 type AppMenuContextValue = {
@@ -104,6 +106,11 @@ function JournalStackNavigator() {
       />
       <Stack.Screen name="Filter" component={FilterScreen} options={{ title: "Filter" }} />
       <Stack.Screen name="Backup" component={BackupScreen} options={{ title: "Säkerhetskopia" }} />
+      <Stack.Screen
+        name="CategorySettings"
+        component={CategorySettingsScreen}
+        options={{ title: "Kategoriinställningar" }}
+      />
     </Stack.Navigator>
   );
 }

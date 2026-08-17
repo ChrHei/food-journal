@@ -1,6 +1,8 @@
 import * as SQLite from "expo-sqlite";
 
 export const JOURNAL_TABLE_NAME = "journal_entries";
+export const CATEGORY_SETTINGS_TABLE_NAME = "category_default_settings";
+export const CATEGORY_PERIODS_TABLE_NAME = "category_time_periods";
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | undefined;
 
@@ -30,5 +32,16 @@ export async function initializeDatabase() {
       ON ${JOURNAL_TABLE_NAME} (timestamp DESC);
     CREATE INDEX IF NOT EXISTS idx_journal_entries_category
       ON ${JOURNAL_TABLE_NAME} (category);
+    CREATE TABLE IF NOT EXISTS ${CATEGORY_SETTINGS_TABLE_NAME} (
+      id INTEGER PRIMARY KEY NOT NULL CHECK (id = 1),
+      default_category TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS ${CATEGORY_PERIODS_TABLE_NAME} (
+      id TEXT PRIMARY KEY NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      category TEXT NOT NULL,
+      sort_order INTEGER NOT NULL
+    );
   `);
 }
