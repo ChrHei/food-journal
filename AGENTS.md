@@ -155,9 +155,9 @@ The principal repository directory is the control point and stays on `main`. Tre
 
 For every user-requested repository task, the main agent works in a dedicated worktree under `<repo>/.worktrees/`, whether or not subagents are involved. Continue using that worktree for the same task and feature branch; create a separate worktree for a separate feature branch. Never edit, stage, commit, or otherwise change feature work from the principal repository directory.
 
-Each feature and its pull request have one originating feature branch and one implementation worktree. All implementation changes for that pull request—including follow-up fixes, review feedback, and requested amendments—must be made in that same branch and worktree. Do not create a second feature branch or worktree to change code already belonging to an open pull request. Detached worktrees may be used for read-only review only; if the review requires a change, return to the originating implementation worktree.
+Each feature and its pull request have one originating feature branch: it is the sole integration branch for all changes related to that feature. Do not create a second feature branch for follow-up fixes, review feedback, or requested amendments to an open pull request.
 
-One agent owns an implementation worktree at a time. No other agent may edit, stage, commit, or build in that worktree while it is owned. Other agents may use their own detached worktrees for read-only review, or their own feature branches and worktrees for independent work. The owning agent applies review findings and integrates any approved work into the pull request branch.
+Each agent uses a separate worktree. The designated integration owner works in the feature branch's implementation worktree. Other agents use detached worktrees based on that feature branch. They may make commits in their detached worktrees, but must report those commits to the integration owner. The owner integrates approved commits into the originating feature branch and pushes the pull request. No agent may edit, stage, commit, or build in another agent's worktree.
 
 Before work on a feature task:
 
