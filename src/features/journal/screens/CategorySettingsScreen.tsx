@@ -10,7 +10,6 @@ import { Field } from "@/components/Field";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import {
-  DEFAULT_CATEGORY_SETTINGS,
   validateCategoryDefaultSettings,
   type CategoryDefaultSettings,
   type CategoryTimePeriod,
@@ -23,8 +22,10 @@ type TimePickerTarget = { periodId: string; field: "startTime" | "endTime" };
 
 export function CategorySettingsScreen({}: Props) {
   const { categorySettingsRepository, ready } = useJournalContext();
-  const [settings, setSettings] = useState<CategoryDefaultSettings>(DEFAULT_CATEGORY_SETTINGS);
+  const [settings, setSettings] = useState<CategoryDefaultSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timePickerTarget, setTimePickerTarget] = useState<TimePickerTarget | null>(null);
@@ -35,6 +36,8 @@ export function CategorySettingsScreen({}: Props) {
     }
 
     let active = true;
+    setLoading(true);
+    setLoadError(null);
 
     categorySettingsRepository
       .getSettings()
@@ -47,7 +50,8 @@ export function CategorySettingsScreen({}: Props) {
       .catch((loadError) => {
         console.error(loadError);
         if (active) {
-          setError("Kunde inte läsa kategoriinställningarna.");
+          setSettings(null);
+          setLoadError("Kunde inte läsa kategoriinställningarna.");
           setLoading(false);
         }
       });
@@ -55,39 +59,51 @@ export function CategorySettingsScreen({}: Props) {
     return () => {
       active = false;
     };
-  }, [categorySettingsRepository, ready]);
+  }, [categorySettingsRepository, loadAttempt, ready]);
 
   function addPeriod() {
-    setSettings((current) => ({
-      ...current,
-      periods: [
-        ...current.periods,
-        {
-          id: createPeriodId(),
-          startTime: "06:00",
-          endTime: "09:00",
-          category: current.defaultCategory,
-        },
-      ],
-    }));
+    setSettings((current) =>
+      current
+        ? {
+            ...current,
+            periods: [
+              ...current.periods,
+              {
+                id: createPeriodId(),
+                startTime: "06:00",
+                endTime: "09:00",
+                category: current.defaultCategory,
+              },
+            ],
+          }
+        : current,
+    );
     setError(null);
   }
 
   function updatePeriod(id: string, update: Partial<CategoryTimePeriod>) {
-    setSettings((current) => ({
-      ...current,
-      periods: current.periods.map((period) =>
-        period.id === id ? { ...period, ...update } : period,
-      ),
-    }));
+    setSettings((current) =>
+      current
+        ? {
+            ...current,
+            periods: current.periods.map((period) =>
+              period.id === id ? { ...period, ...update } : period,
+            ),
+          }
+        : current,
+    );
     setError(null);
   }
 
   function removePeriod(id: string) {
-    setSettings((current) => ({
-      ...current,
-      periods: current.periods.filter((period) => period.id !== id),
-    }));
+    setSettings((current) =>
+      current
+        ? {
+            ...current,
+            periods: current.periods.filter((period) => period.id !== id),
+          }
+        : current,
+    );
     setError(null);
   }
 
@@ -106,10 +122,16 @@ export function CategorySettingsScreen({}: Props) {
   }
 
   async function handleSave() {
+    if (!settings) {
+      return;
+    }
+
     const errors = validateCategoryDefaultSettings(settings);
 
     if (errors.length > 0) {
-      setError(errors.join("\n"));
+      const message = errors.join("\n");
+      setError(message);
+      Alert.alert("Kontrollera inställningarna", message);
       return;
     }
 
@@ -120,13 +142,16 @@ export function CategorySettingsScreen({}: Props) {
       await categorySettingsRepository.saveSettings(settings);
       Alert.alert("Sparat", "Kategoriinställningarna har sparats.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Kunde inte spara inställningarna.");
+      const message =
+        saveError instanceof Error ? saveError.message : "Kunde inte spara inställningarna.";
+      setError(message);
+      Alert.alert("Kunde inte spara", message);
     } finally {
       setSaving(false);
     }
   }
 
-  const selectedTime = timePickerTarget
+  const selectedTime = timePickerTarget && settings
     ? getTimePickerValue(
         settings.periods.find((period) => period.id === timePickerTarget.periodId)?.[
           timePickerTarget.field
@@ -138,6 +163,26 @@ export function CategorySettingsScreen({}: Props) {
     return (
       <Screen>
         <Text style={styles.status}>Laddar inställningar...</Text>
+      </Screen>
+    );
+  }
+
+  if (loadError || !settings) {
+    return (
+      <Screen
+        footer={
+          <PrimaryButton
+            label="Försök igen"
+            onPress={() => setLoadAttempt((attempt) => attempt + 1)}
+          />
+        }
+      >
+        <View style={styles.loadErrorCard}>
+          <Text style={styles.loadErrorTitle}>Inställningarna kunde inte öppnas</Text>
+          <Text style={styles.help}>
+            {loadError ?? "Försök läsa kategoriinställningarna igen."}
+          </Text>
+        </View>
       </Screen>
     );
   }
@@ -163,7 +208,11 @@ export function CategorySettingsScreen({}: Props) {
       <Field label="Standardkategori" hint="Används när ingen tidsperiod matchar.">
         <CategoryChoices
           value={settings.defaultCategory}
-          onChange={(defaultCategory) => setSettings((current) => ({ ...current, defaultCategory }))}
+          onChange={(defaultCategory) =>
+            setSettings((current) =>
+              current ? { ...current, defaultCategory } : current,
+            )
+          }
         />
       </Field>
 
@@ -294,4 +343,6 @@ const styles = StyleSheet.create({
   chipGroup: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   error: { backgroundColor: "#f8e3df", borderRadius: 14, color: "#8b2f25", lineHeight: 20, padding: 14 },
   status: { color: "#7a3d13", textAlign: "center" },
+  loadErrorCard: { backgroundColor: "#f8e3df", borderRadius: 16, gap: 6, padding: 16 },
+  loadErrorTitle: { color: "#8b2f25", fontSize: 18, fontWeight: "800" },
 });
