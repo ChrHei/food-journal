@@ -157,6 +157,8 @@ For every user-requested repository task, the main agent works in a dedicated wo
 
 Each feature and its pull request have one originating feature branch and one implementation worktree. All implementation changes for that pull request—including follow-up fixes, review feedback, and requested amendments—must be made in that same branch and worktree. Do not create a second feature branch or worktree to change code already belonging to an open pull request. Detached worktrees may be used for read-only review only; if the review requires a change, return to the originating implementation worktree.
 
+One agent owns an implementation worktree at a time. No other agent may edit, stage, commit, or build in that worktree while it is owned. Other agents may use their own detached worktrees for read-only review, or their own feature branches and worktrees for independent work. The owning agent applies review findings and integrates any approved work into the pull request branch.
+
 Before work on a feature task:
 
 1. In the principal repository directory, inspect `git status` and preserve unrelated user changes.
