@@ -155,6 +155,10 @@ The principal repository directory is the control point and stays on `main`. Tre
 
 For every user-requested repository task, the main agent works in a dedicated worktree under `<repo>/.worktrees/`, whether or not subagents are involved. Continue using that worktree for the same task and feature branch; create a separate worktree for a separate feature branch. Never edit, stage, commit, or otherwise change feature work from the principal repository directory.
 
+Each feature and its pull request have one originating feature branch: it is the sole integration branch for all changes related to that feature. Do not create a second feature branch for follow-up fixes, review feedback, or requested amendments to an open pull request.
+
+Each agent uses a separate worktree. The designated integration owner works in the feature branch's implementation worktree. Other agents use detached worktrees based on that feature branch. They may make commits in their detached worktrees, but must report those commits to the integration owner. The owner integrates approved commits into the originating feature branch and pushes the pull request. No agent may edit, stage, commit, or build in another agent's worktree.
+
 Before work on a feature task:
 
 1. In the principal repository directory, inspect `git status` and preserve unrelated user changes.
