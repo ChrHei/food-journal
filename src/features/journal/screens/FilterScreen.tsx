@@ -1,7 +1,7 @@
 import React from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { StyleSheet, Switch, Text, View } from "react-native";
+import { StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import type { RootStackParamList } from "@/app/navigation/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
@@ -26,6 +26,7 @@ export function FilterScreen({ navigation, route }: Props) {
     to: route.params?.filter?.to?.slice(0, 10) ?? "",
     category: route.params?.filter?.category as CategoryType | undefined,
     symptomsOnly: route.params?.filter?.symptomsOnly ?? false,
+    textSearch: route.params?.filter?.textSearch ?? "",
   });
   const [activeDatePicker, setActiveDatePicker] = React.useState<"from" | "to" | null>(null);
 
@@ -44,6 +45,17 @@ export function FilterScreen({ navigation, route }: Props) {
 
   return (
     <Screen>
+      <Field label="Sök i journaltext" hint="Sökningen matchar även delar av ord.">
+        <TextInput
+          accessibilityLabel="Sök i journaltext"
+          placeholder="Till exempel banan"
+          returnKeyType="search"
+          style={styles.textInput}
+          value={filter.textSearch}
+          onChangeText={(textSearch) => setFilter((current) => ({ ...current, textSearch }))}
+        />
+      </Field>
+
       <Field label="Från datum" hint="Valfritt">
         <View style={styles.dateRow}>
           <Text style={styles.dateValue}>{filter.from || "Inte valt"}</Text>
@@ -131,6 +143,7 @@ export function FilterScreen({ navigation, route }: Props) {
               to: filter.to ? localDateToUtcBoundary(filter.to, "end") : undefined,
               category: filter.category,
               symptomsOnly: filter.symptomsOnly,
+              textSearch: filter.textSearch,
             },
           })
         }
@@ -145,6 +158,16 @@ export function FilterScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
+  textInput: {
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#ddc8b2",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#261a13",
+  },
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
