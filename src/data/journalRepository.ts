@@ -1,5 +1,6 @@
 import { JOURNAL_TABLE_NAME, getDatabase } from "./database";
 import type { JournalEntry, JournalEntryInput, JournalFilter } from "@/domain/journal";
+import { filterJournalEntriesByText } from "@/domain/journalSearch";
 import { validateEntryInput } from "@/domain/validation";
 
 export type JournalRepository = {
@@ -103,7 +104,7 @@ export function createJournalRepository(): JournalRepository {
       const db = await getDatabase();
       const { query, params } = buildListEntriesQuery(filter);
       const rows = await db.getAllAsync<JournalEntryRow>(query, ...params);
-      return rows.map(mapRow);
+      return filterJournalEntriesByText(rows.map(mapRow), filter.textSearch);
     },
 
     async importEntries(entries) {

@@ -16,9 +16,10 @@ import { CategoryIcon } from "@/components/CategoryIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { SymptomBadge } from "@/components/SymptomBadge";
-import type { JournalEntry, JournalFilter } from "@/domain/journal";
+import type { JournalEntry } from "@/domain/journal";
 import { useJournalEntries } from "@/features/journal/hooks/useJournalEntries";
 import { formatDateTime } from "@/features/journal/utils/date";
+import { summarizeJournalFilter } from "@/features/journal/utils/filter";
 import { shouldCopyFromSwipe } from "@/features/journal/utils/swipe";
 
 type Props = NativeStackScreenProps<RootStackParamList, "JournalList">;
@@ -26,7 +27,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "JournalList">;
 export function JournalListScreen({ navigation, route }: Props) {
   const filter = route.params?.filter;
   const { entries, loading } = useJournalEntries(filter);
-  const filterSummary = useMemo(() => summarizeFilter(filter), [filter]);
+  const filterSummary = useMemo(() => summarizeJournalFilter(filter), [filter]);
 
   return (
     <Screen>
@@ -121,32 +122,6 @@ function EntryCard({
       </Animated.View>
     </View>
   );
-}
-
-function summarizeFilter(filter?: JournalFilter) {
-  if (!filter) {
-    return "Alla poster";
-  }
-
-  const parts: string[] = [];
-
-  if (filter.category) {
-    parts.push(filter.category);
-  }
-
-  if (filter.symptomsOnly) {
-    parts.push("endast symptom");
-  }
-
-  if (filter.from) {
-    parts.push(`från ${filter.from.slice(0, 10)}`);
-  }
-
-  if (filter.to) {
-    parts.push(`till ${filter.to.slice(0, 10)}`);
-  }
-
-  return parts.length > 0 ? parts.join(" • ") : "Alla poster";
 }
 
 const styles = StyleSheet.create({

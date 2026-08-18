@@ -22,4 +22,5 @@ export type JournalFilter = {
   to?: string;
   category?: CategoryType;
   symptomsOnly?: boolean;
+  textSearch?: string;
 };

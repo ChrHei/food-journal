@@ -9,12 +9,14 @@ describe("repository helpers", () => {
       to: "2026-07-31T23:59:59.999Z",
       category: "Anteckning",
       symptomsOnly: true,
+      textSearch: "%_",
     });
 
     expect(result.query).toContain("timestamp >= ?");
     expect(result.query).toContain("timestamp <= ?");
     expect(result.query).toContain("category = ?");
     expect(result.query).toContain("symptom_flag = 1");
+    expect(result.query).not.toContain("text LIKE");
     expect(result.params).toEqual([
       "2026-07-01T00:00:00.000Z",
       "2026-07-31T23:59:59.999Z",
