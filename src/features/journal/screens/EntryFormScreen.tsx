@@ -18,6 +18,11 @@ import { IconButton } from "@/components/IconButton";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { categoryOptions } from "@/domain/categories";
+import {
+  DEFAULT_CATEGORY_SETTINGS,
+  resolveCategoryForTimestamp,
+  type CategoryDefaultSettings,
+} from "@/domain/categoryDefaults";
 import type { JournalEntryInput } from "@/domain/journal";
 import { validateEntryInput } from "@/domain/validation";
 import { useJournalContext } from "@/features/journal/context/JournalProvider";
@@ -43,7 +48,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "EntryForm">;
 export function EntryFormScreen({ navigation, route }: Props) {
   const entryId = route.params?.entryId;
   const copy = route.params?.copy;
-  const { ready, repository, refresh } = useJournalContext();
+  const { ready, repository, categorySettingsRepository, refresh } = useJournalContext();
   const initialDefaultFormRef = useRef<EntryFormValues>(createDefaultEntryFormValues());
   const [form, setForm] = useState<EntryFormValues>(initialDefaultFormRef.current);
   const [initialForm, setInitialForm] = useState<EntryFormValues>(initialDefaultFormRef.current);
@@ -53,6 +58,10 @@ export function EntryFormScreen({ navigation, route }: Props) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const allowExitRef = useRef(false);
+  const categoryWasManuallySelectedRef = useRef(Boolean(entryId || copy));
+  const [categorySettings, setCategorySettings] = useState<CategoryDefaultSettings>(
+    DEFAULT_CATEGORY_SETTINGS,
+  );
   const hasUnsavedChanges = useMemo(
     () => !areEntryFormValuesEqual(form, initialForm),
     [form, initialForm],
@@ -60,13 +69,51 @@ export function EntryFormScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (!entryId) {
-      const nextForm = copy ? createCopiedEntryFormValues(copy) : createDefaultEntryFormValues();
-      allowExitRef.current = false;
-      setForm(nextForm);
-      setInitialForm(nextForm);
-      setLoadingEntry(false);
+      if (copy) {
+        const nextForm = createCopiedEntryFormValues(copy);
+        categoryWasManuallySelectedRef.current = true;
+        allowExitRef.current = false;
+        setForm(nextForm);
+        setInitialForm(nextForm);
+        setLoadingEntry(false);
+        setLoadError(null);
+        return;
+      }
+
+      if (!ready) {
+        setLoadingEntry(true);
+        return;
+      }
+
+      let active = true;
+      setLoadingEntry(true);
       setLoadError(null);
-      return;
+
+      categorySettingsRepository
+        .getSettings()
+        .then((loadedSettings) => {
+          if (!active) {
+            return;
+          }
+
+          const nextForm = createDefaultEntryFormValues(new Date().toISOString(), loadedSettings);
+          categoryWasManuallySelectedRef.current = false;
+          setCategorySettings(loadedSettings);
+          setForm(nextForm);
+          setInitialForm(nextForm);
+          setLoadingEntry(false);
+        })
+        .catch((error) => {
+          console.error(error);
+          if (active) {
+            setLoadError("Kunde inte läsa kategori-inställningarna.");
+            setLoadingEntry(false);
+          }
+        });
+
+      return () => {
+        active = false;
+      };
     }
 
     if (!ready) {
@@ -92,6 +139,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
         }
 
         const nextForm = mapEntryToEntryFormValues(entry);
+        categoryWasManuallySelectedRef.current = true;
         allowExitRef.current = false;
         setForm(nextForm);
         setInitialForm(nextForm);
@@ -108,7 +156,7 @@ export function EntryFormScreen({ navigation, route }: Props) {
     return () => {
       active = false;
     };
-  }, [copy, entryId, ready, repository]);
+  }, [categorySettingsRepository, copy, entryId, ready, repository]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {
@@ -177,10 +225,10 @@ export function EntryFormScreen({ navigation, route }: Props) {
     setForm((current) => {
       const timestamp = fromLocalDateTimeValue(current.timestampLocal) ?? new Date();
 
-      return {
-        ...current,
-        timestampLocal: toLocalInputValue(mergeLocalDate(timestamp, selectedDate).toISOString()),
-      };
+      return withUpdatedTimestamp(
+        current,
+        toLocalInputValue(mergeLocalDate(timestamp, selectedDate).toISOString()),
+      );
     });
     setShowTimePicker(true);
   }
@@ -195,16 +243,29 @@ export function EntryFormScreen({ navigation, route }: Props) {
     setForm((current) => {
       const timestamp = fromLocalDateTimeValue(current.timestampLocal) ?? new Date();
 
-      return {
-        ...current,
-        timestampLocal: toLocalInputValue(mergeLocalTime(timestamp, selectedTime).toISOString()),
-      };
+      return withUpdatedTimestamp(
+        current,
+        toLocalInputValue(mergeLocalTime(timestamp, selectedTime).toISOString()),
+      );
     });
+  }
+
+  function withUpdatedTimestamp(current: EntryFormValues, timestampLocal: string) {
+    return {
+      ...current,
+      timestampLocal,
+      category: resolveCategoryForTimestamp(
+        categorySettings,
+        timestampLocal,
+        current.category,
+        categoryWasManuallySelectedRef.current,
+      ),
+    };
   }
 
   const selectedTimestamp = fromLocalDateTimeValue(form.timestampLocal) ?? new Date();
 
-  if (entryId && (loadingEntry || !ready)) {
+  if (loadingEntry || !ready) {
     return (
       <Screen>
         <Text>Laddar post...</Text>
@@ -243,10 +304,9 @@ export function EntryFormScreen({ navigation, route }: Props) {
               accessibilityLabel="Sätt tidpunkt till nu"
               icon="◷"
               onPress={() =>
-                setForm((current) => ({
-                  ...current,
-                  timestampLocal: createDefaultEntryFormValues().timestampLocal,
-                }))
+                setForm((current) =>
+                  withUpdatedTimestamp(current, createDefaultEntryFormValues().timestampLocal),
+                )
               }
             />
           </View>
@@ -278,7 +338,10 @@ export function EntryFormScreen({ navigation, route }: Props) {
               key={category}
               label={category}
               selected={form.category === category}
-              onPress={() => setForm((current) => ({ ...current, category }))}
+              onPress={() => {
+                categoryWasManuallySelectedRef.current = true;
+                setForm((current) => ({ ...current, category }));
+              }}
             />
           ))}
         </View>

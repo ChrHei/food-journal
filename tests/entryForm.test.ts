@@ -20,6 +20,15 @@ describe("entry form helpers", () => {
     expect(form.timestampLocal).toBe("2026-07-10T09:30");
   });
 
+  it("uses the configured category for a new form", () => {
+    const form = createDefaultEntryFormValues("2026-07-10T06:30:00.000Z", {
+      defaultCategory: "Anteckning",
+      periods: [{ id: "morning", startTime: "08:00", endTime: "10:00", category: "Frukost" }],
+    });
+
+    expect(form.category).toBe("Frukost");
+  });
+
   it("detects edited fields", () => {
     const baseline = createDefaultEntryFormValues("2026-07-10T07:30:00.000Z");
 

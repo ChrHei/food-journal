@@ -6,11 +6,16 @@ type ChipProps = {
   label: string;
   selected: boolean;
   onPress: () => void;
+  disabled?: boolean;
 };
 
-export function Chip({ icon, label, selected, onPress }: ChipProps) {
+export function Chip({ icon, label, selected, onPress, disabled = false }: ChipProps) {
   return (
-    <Pressable onPress={onPress} style={[styles.chip, selected && styles.selected]}>
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={[styles.chip, selected && styles.selected, disabled && styles.disabled]}
+    >
       {icon ? <View style={[styles.icon, selected && styles.selectedIcon]}>{icon}</View> : null}
       <Text style={[styles.label, selected && styles.selectedLabel]}>{label}</Text>
     </Pressable>
@@ -51,5 +56,8 @@ const styles = StyleSheet.create({
   },
   selectedLabel: {
     color: "#ffffff",
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });

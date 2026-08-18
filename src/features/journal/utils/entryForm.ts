@@ -1,4 +1,9 @@
 import type { CategoryType } from "@/domain/categories";
+import {
+  DEFAULT_CATEGORY_SETTINGS,
+  getSuggestedCategory,
+  type CategoryDefaultSettings,
+} from "@/domain/categoryDefaults";
 import type { JournalEntry } from "@/domain/journal";
 
 import { roundDownToFiveMinutes, toLocalInputValue } from "./date";
@@ -10,10 +15,15 @@ export type EntryFormValues = {
   symptomFlag: boolean;
 };
 
-export function createDefaultEntryFormValues(nowIso = new Date().toISOString()): EntryFormValues {
+export function createDefaultEntryFormValues(
+  nowIso = new Date().toISOString(),
+  settings: CategoryDefaultSettings = DEFAULT_CATEGORY_SETTINGS,
+): EntryFormValues {
+  const timestampLocal = toLocalInputValue(roundDownToFiveMinutes(new Date(nowIso)).toISOString());
+
   return {
-    timestampLocal: toLocalInputValue(roundDownToFiveMinutes(new Date(nowIso)).toISOString()),
-    category: "Frukost",
+    timestampLocal,
+    category: getSuggestedCategory(settings, timestampLocal),
     text: "",
     symptomFlag: false,
   };
